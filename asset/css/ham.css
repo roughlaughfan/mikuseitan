@@ -1,0 +1,291 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #f0f0f0;
+  font-family: "Noto Sans JP", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+#main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+}
+
+#main .main_wrap {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  margin: auto;
+  position: relative;
+  perspective: 1000px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  z-index: 10;
+}
+
+#ui {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 3 / 4;
+  position: absolute;
+  z-index: 2;
+}
+
+#score {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  z-index: 3;
+  text-shadow:
+    1px 1px 0 #FFF,
+    -1px 1px 0 #FFF,
+    -1px -1px 0 #FFF,
+    1px -1px 0 #FFF;
+}
+
+canvas {
+  display: block;
+  margin: auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  height: auto;
+  width: auto;
+  aspect-ratio: 3 / 4;
+}
+
+#game-screen {
+  display: none;
+  /* ★修正★: Phaserのキャンバスと同じサイズに合わせる */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+
+#game-over-screen,
+#game-clear-screen {
+  display: none;
+}
+
+.screen-title {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.screen-button {
+  font-size: 24px;
+  padding: 10px 20px;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.screen-button:hover {
+  background: white;
+  color: black;
+}
+
+/* スタート画面・クリア・ゲームオーバー */
+#start-screen,
+#game-over-screen,
+#game-clear-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: url("../images/start.png") no-repeat center center;
+  color: white;
+  z-index: 10;
+  padding: 10% 15%;
+  box-sizing: border-box;
+  color: rgb(52, 52, 52);
+  background-size: 100% 100%;
+}
+
+start-screen {
+  background-image: url("../images/start.png");
+}
+
+#game-over-screen {
+  background-image: url("../images/gameover.png");
+}
+
+#game-clear-screen {
+  background-image: url("../images/clear.png");
+}
+
+#game-over-screen,
+#game-clear-screen {
+  display: none;
+}
+
+/* ボタン */
+.btn {
+  display: block;
+  width: 100%;
+  background: #0054ed;
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3em;
+  font-size: 20px;
+  border-radius: 5px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.btn:hover {
+  opacity: .7;
+}
+
+h1 {
+  color: #0054ed;
+}
+
+#main * {
+  -webkit-user-select: none;
+  /* Safari, Chrome */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE10+ */
+  user-select: none;
+}
+
+/* 背景用 */
+#game-container {
+  position: relative;
+  width: 480px;
+  height: 640px;
+  margin: auto;
+}
+
+#background-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 2s ease-in-out;
+  /* ★クロスフェードのアニメーション設定★ */
+}
+
+.visible {
+  opacity: 1;
+}
+
+/* スマホ用コントローラ */
+#controls {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: none;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.ctrl-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 24px;
+  border: none;
+  border-radius: 50%;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-touch-callout: none;
+}
+
+#leftRight {
+  display: flex;
+  gap: 20px;
+}
+
+@media (max-width: 479px) {
+  #main .main_wrap {
+    margin: 0 auto auto;
+    max-height: none;
+    height: auto;
+    aspect-ratio: 3 / 4;
+  }
+
+  #ui {
+    margin: 0 auto auto;
+    max-height: none;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    top: 0;
+    transform: translate(-50%, 0);
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    top: 0;
+    transform: translate(-50%, 0%);
+  }
+
+
+  h1 {
+    font-size: 7vw;
+  }
+
+  h2 {
+    font-size: 5vw;
+  }
+
+  h1+p,
+  h2+p,
+  .btn,
+  #score,
+  #difficultyDisplay,
+  .x_share {
+    font-size: 3.5vw;
+  }
+}
