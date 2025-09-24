@@ -33,7 +33,7 @@ let gameScene;
 let backgrounds = [];
 let activeBgIndex = 0;
 
-new Phaser.Game(config);
+const phaserGame = new Phaser.Game(config);
 
 // ---------- 追加グローバル変数（ファイル上部に置く） ----------
 let eventTimers = [];              // Phaser.TimerEvent を格納
@@ -46,6 +46,8 @@ let katBgFirstIndexByDifficulty = { easy: 0, normal: 1, hard: 2 }; // 例：難�
 let maxCols = 0;                   // 横列生成で使う列数（create() で初期化）
 const cellSize = 30;               // 1マス幅（爆弾の見た目に合わせて調整）
 // katakanaWords は既存の参照JSから引っ張れます。ここでは既存の配列を使う前提。
+
+let gameStarted = false; // ゲーム開始フラグ
 
 
 function preload() {
@@ -392,7 +394,6 @@ function create() {
 
   // アニメーションを一度だけ作成
   setupAnimations(this);
-this.game.loop.stop();
 
   // player 生成
   player = this.physics.add.sprite(100, 100, "ham");
@@ -478,6 +479,8 @@ this.game.loop.stop();
   maxCols = Math.floor(config.width / cellSize);
   katBgQueue = [];
   startSpecialEventLoop(this);
+
+  this.physics.pause();
 
 }
 
@@ -843,6 +846,7 @@ function collectItem(player, item) {
 }
 
 function update(time, delta) {
+  if (!gameStarted) return;
   gameTime += delta;
 
   if (gameOver) {
@@ -940,13 +944,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const backButtonClear = document.getElementById('back-button-clear'); // ★追加
 
   startButton.addEventListener('click', () => {
+    gameStarted = true;
     startScreen.style.display = 'none';
     gameScreen.style.display = 'block';
-    this.game.loop.start();
-    //gameScene.physics.resume();
-    //if (gameScene) {
-    //  gameScene.physics.resume(); // ゲーム開始時に物理エンジンを再開
-    //}
+
+    // 物理エンジンを再開
+    gameScene.physics.resume();
   });
 
   restartButtonOver.addEventListener('click', restartGame);
@@ -987,7 +990,9 @@ function backToStart() {
 
   // シーンを再起動
   gameScene.scene.restart();
-  this.game.loop.stop();
+  if (typeof phaserGame !== 'undefined' && phaserGame && phaserGame.loop) {
+    phaserGame.loop.stop();
+  }
 }
 
 function isTouchDevice() {
