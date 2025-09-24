@@ -392,6 +392,7 @@ function create() {
 
   // アニメーションを一度だけ作成
   setupAnimations(this);
+this.game.loop.stop();
 
   // player 生成
   player = this.physics.add.sprite(100, 100, "ham");
@@ -941,10 +942,11 @@ window.addEventListener('DOMContentLoaded', () => {
   startButton.addEventListener('click', () => {
     startScreen.style.display = 'none';
     gameScreen.style.display = 'block';
-    gameScene.physics.resume();
-    if (gameScene) {
-      gameScene.physics.resume(); // ゲーム開始時に物理エンジンを再開
-    }
+    this.game.loop.start();
+    //gameScene.physics.resume();
+    //if (gameScene) {
+    //  gameScene.physics.resume(); // ゲーム開始時に物理エンジンを再開
+    //}
   });
 
   restartButtonOver.addEventListener('click', restartGame);
@@ -985,6 +987,7 @@ function backToStart() {
 
   // シーンを再起動
   gameScene.scene.restart();
+  this.game.loop.stop();
 }
 
 function isTouchDevice() {
