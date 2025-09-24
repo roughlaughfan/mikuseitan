@@ -34,6 +34,8 @@ let gameScene;
 let backgrounds = [];
 let activeBgIndex = 0;
 
+let backgrounds_str = [];
+
 const phaserGame = new Phaser.Game(config);
 
 // ---------- 追加グローバル変数（ファイル上部に置く） ----------
@@ -63,7 +65,13 @@ function preload() {
   this.load.image("bg01", "asset/images/default_bg03.png");
   this.load.image("bg02", "asset/images/default_bg02.png");
   this.load.image("bg03", "asset/images/default_bg.png");
+  this.load.image("s_bg01", "asset/images/bg01.png");
+  this.load.image("s_bg02", "asset/images/bg02.png");
+  this.load.image("s_bg03", "asset/images/bg03.png");
+  this.load.image("s_bg04", "asset/images/bg04.png");
+  this.load.image("s_bg05", "asset/images/bg05.png");
 }
+
 
 
 // カタカナ形状定義（7×7ドット、1マス=30px）
@@ -389,6 +397,17 @@ function create() {
   const bg3 = this.add.image(0, 0, "bg03").setOrigin(0, 0).setAlpha(0);
   backgrounds = [bg1, bg2, bg3];
 
+
+  const s_bg1 = this.add.image(0, 0, "s_bg01").setOrigin(0, 0).setAlpha(0);
+  const s_bg2 = this.add.image(0, 0, "s_bg02").setOrigin(0, 0).setAlpha(0);
+  const s_bg3 = this.add.image(0, 0, "s_bg03").setOrigin(0, 0).setAlpha(0);
+  const s_bg4 = this.add.image(0, 0, "s_bg04").setOrigin(0, 0).setAlpha(0);
+  const s_bg5 = this.add.image(0, 0, "s_bg05").setOrigin(0, 0).setAlpha(0);
+  backgrounds_str = [s_bg1, s_bg2, s_bg3, s_bg4, s_bg5];
+
+
+
+
   // ★初期化処理：リスタートでも最初の背景に戻す
   activeBgIndex = 0;
   backgrounds.forEach((bg, i) => bg.setAlpha(i === 0 ? 1 : 0));
@@ -612,7 +631,7 @@ function spawnKatakanaPhaser(scene, char, isLastChar = false) {
 function showKatakanaBackground(scene) {
   // 背景一枚目は難易度により固定、それ以降は katBgQueue (シャッフル済み) で回す
   // backgrounds[] は create() で作った Phaser Image 配列を使う想定
-  if (!backgrounds || backgrounds.length === 0) return;
+  if (!backgrounds_str || backgrounds_str.length === 0) return;
 
   // 決める画像インデックス
   let imgKeyIndex;
@@ -620,7 +639,7 @@ function showKatakanaBackground(scene) {
     // 初回表示：難易度対応の固定を先頭に、残りをシャッフル（続けて同じ画像がでないように）
     const d = difficulty || 'normal';
     const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined ? katBgFirstIndexByDifficulty[d] : 0;
-    const otherIndices = backgrounds.map((_, i) => i).filter(i => i !== fixedIndex);
+    const otherIndices = backgrounds_str.map((_, i) => i).filter(i => i !== fixedIndex);
     // shuffle
     Phaser.Utils.Array.Shuffle(otherIndices);
     katBgQueue = [fixedIndex].concat(otherIndices);
@@ -629,7 +648,7 @@ function showKatakanaBackground(scene) {
   imgKeyIndex = katBgQueue.shift();
 
   // フェード切替（既存 background Images に対して alpha tween）
-  backgrounds.forEach((bg, idx) => {
+  backgrounds_str.forEach((bg, idx) => {
     scene.tweens.add({
       targets: bg,
       alpha: idx === imgKeyIndex ? 1 : 0,
@@ -640,9 +659,9 @@ function showKatakanaBackground(scene) {
   // また表示済み配列の末尾に入れて、全て使い切ったら再構成：連続重複回避
   katBgQueue.push(imgKeyIndex);
   // 再度同じ順番が続かない簡易処理
-  if (katBgQueue.length > backgrounds.length) {
+  if (katBgQueue.length > backgrounds_str.length) {
     // trim（実装の安全策）
-    katBgQueue = katBgQueue.slice(0, backgrounds.length);
+    katBgQueue = katBgQueue.slice(0, backgrounds_str.length);
   }
 }
 
@@ -721,8 +740,16 @@ function startKatakanaPhase(scene) {
       const waitMs = 3000; // 実機で調整してください（文字が落ち切る目安）
       const endT = scene.time.delayedCall(waitMs, () => {
         inKatakanaEvent = false; // ★修正：カタカナイベントも終了
-        // ここでは activeBgIndex を次の通常画面背景に戻す処理とする
+        backgrounds_str.forEach((bg) => {
+          scene.tweens.add({
+            targets: bg,
+            alpha: 0,
+            duration: 500,
+          });
+        });
         backgrounds.forEach((bg, i) => bg.setAlpha(i === activeBgIndex ? 1 : 0));
+        // ここでは activeBgIndex を次の通常画面背景に戻す処理とする
+        //backgrounds.forEach((bg, i) => bg.setAlpha(i === activeBgIndex ? 1 : 0));
         // イベント終了後、40秒後に再度イベントサイクルを始める（仕様どおり）
         const nextCycleT = scene.time.delayedCall(40000, () => runSpecialCycle(scene), [], scene);
         eventTimers.push(nextCycleT);
@@ -951,7 +978,8 @@ window.addEventListener('DOMContentLoaded', () => {
     gameScreen.style.display = 'block';
 
     // 物理エンジンを再開
-    gameScene.physics.resume();
+    gameScene.scene.restart();
+
   });
 
   restartButtonOver.addEventListener('click', restartGame);
@@ -998,26 +1026,71 @@ function restartGame() {
 
 function backToStart() {
   // 画面の表示をスタート画面に戻す
-  gameOverScreen.style.display = 'none';
-  gameClearScreen.style.display = 'none';
-  gameScreen.style.display = 'none';
-  startScreen.style.display = 'block';
+  try {
+    gameOverScreen.style.display = 'none';
+    gameClearScreen.style.display = 'none';
+    gameScreen.style.display = 'none';
+    startScreen.style.display = 'block';
+  } catch (e) {
+    // DOM が未定義なら無視
+    console.warn('DOM hide/show failed:', e);
+  }
 
-  // ゲーム状態を初期化
+  // --- グローバル状態を確実に初期化 ---
+  // 既存のタイマー類を全て消す（Phaser の TimerEvent と setTimeout）
+  try {
+    clearAllEventTimers(gameScene);
+  } catch (e) { console.warn('clearAllEventTimers failed', e); }
+
+  if (invincibleTimer) {
+    clearTimeout(invincibleTimer);
+    invincibleTimer = null;
+  }
+  isInvincible = false;
+
+  // ゲーム状態の基本値をリセット
   lives = 3;
   score = 0;
   gameOver = false;
   gameClear = false;
   gameTime = 0;
-  setDifficulty(difficulty);
-  document.getElementById("score").textContent = "Score: 0";
+  gameStarted = false;
 
-  // シーンを再起動
-  gameScene.scene.restart();
-  if (typeof phaserGame !== 'undefined' && phaserGame && phaserGame.loop) {
-    phaserGame.loop.stop();
+  // イベント管理用変数も初期化
+  eventTimers = [];
+  inSpecialEvent = false;
+  inKatakanaEvent = false;
+  katakanaPatternIndex = 0;
+  specialCycleCount = 0;
+  katBgQueue = [];
+  activeBgIndex = 0;
+
+  // UI 表示リセット
+  const scoreEl = document.getElementById("score");
+  if (scoreEl) scoreEl.textContent = "Score: 0";
+
+  // **重要**: phaserGame.loop.stop() は取り除く（これが残ると再稼働できなくなることがある）
+  // （もし既に呼んでいる箇所があれば削除してください）
+
+  // シーンを再起動して完全に再作成させる（create() が再度走る）
+  if (gameScene && gameScene.scene) {
+    try {
+      gameScene.scene.restart();
+    } catch (e) {
+      console.error('scene.restart failed:', e);
+    }
+  } else {
+    console.warn('gameScene is not ready for restart.');
   }
+
+  // 保険で短時間後に物理エンジンを停止（create の動作に依存するが安全策）
+  setTimeout(() => {
+    if (gameScene && gameScene.physics && !gameStarted) {
+      try { gameScene.physics.pause(); } catch (e) { /* ignore */ }
+    }
+  }, 150);
 }
+
 
 function isTouchDevice() {
   return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
