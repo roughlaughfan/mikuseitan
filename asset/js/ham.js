@@ -27,6 +27,7 @@ let normalItems;
 let eventItems;
 let gameTime = 0;
 let wasd;
+let player;
 
 let gameScene;
 
@@ -480,8 +481,9 @@ function create() {
   katBgQueue = [];
   startSpecialEventLoop(this);
 
-  this.physics.pause();
-
+  if (!gameStarted) {
+    this.physics.pause();
+  }
 }
 
 // ===== 難易度設定用パラメータ =====
@@ -963,13 +965,35 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 function restartGame() {
+  // 画面
   gameOverScreen.style.display = 'none';
   gameClearScreen.style.display = 'none';
   gameScreen.style.display = 'block';
   document.getElementById("score").textContent = "Score: 0";
 
-  clearAllEventTimers(gameScene); // ★ 追加
+  // 古いイベントタイマー類を消す
+  clearAllEventTimers(gameScene);
+
+  // 無敵タイマー（setTimeout）を残さない
+  if (invincibleTimer) {
+    clearTimeout(invincibleTimer);
+    invincibleTimer = null;
+  }
+  isInvincible = false;
+
+  // 再スタート前に「ゲーム開始フラグ」を立てる（create() の条件分岐で参照される）
+  gameStarted = true;
+
+  // シーン再起動
   gameScene.scene.restart();
+
+  // （保険）短時間後に物理エンジンが停止していたら再開する処理
+  // create() の修正を入れたなら不要だが、安全策として入れておくとデバッグが楽になります
+  setTimeout(() => {
+    if (gameScene && gameScene.physics && gameScene.physics.world && gameScene.physics.world.isPaused) {
+      gameScene.physics.resume();
+    }
+  }, 120);
 }
 
 function backToStart() {
