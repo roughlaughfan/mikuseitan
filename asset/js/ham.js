@@ -418,6 +418,7 @@ function create() {
   // player 生成
   player = this.physics.add.sprite(100, 100, "ham");
   player.setBounce(0.2);
+  player.setDepth(10);
   player.setCollideWorldBounds(true);
 
   const emptyHearts = this.add.group({
@@ -482,7 +483,7 @@ function create() {
     loop: true
   });
 
-startSpawnTimer(this);
+  startSpawnTimer(this);
 
   this.input.once('pointerdown', () => {
     this.sound.context.resume();
@@ -582,6 +583,7 @@ function spawnPatternRowPhaser(scene) {
     if (i >= hole && i <= hole + 2) continue;
     const x = startX + i * cellSize + cellSize / 2;
     const bomb = eventItems.create(x, -40, 'bomb'); // ★ eventItems を使用
+    bomb.setDepth(5);
     bomb.body.allowGravity = false;
     // 元コードに合わせて originalSpeed を持たせる
     bomb.originalSpeed = currentSpeed;
@@ -851,7 +853,7 @@ function spawnItem(group = normalItems) { // ★ デフォルト引数を normal
   // ★ 落下速度にランダム性を追加（例：±50%の幅）
   const randomFactor = Phaser.Math.FloatBetween(0.1, 3.0);
   const finalSpeed = currentSpeed * randomFactor;
-  
+
   item.setVelocityY(currentSpeed);
   item.originalSpeed = currentSpeed;
 }
@@ -888,13 +890,12 @@ function collectEventItem(player, item) {
 }
 
 function collectItem(player, item) {
-  item.disableBody(true, true);
-  this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this);
 
   // アイテムが爆弾かどうかをチェック
   if (item.texture.key === 'bomb') {
     // 爆弾の場合の処理
     if (!isInvincible) { // 無敵状態でない場合のみダメージを受ける
+      item.disableBody(true, true); // ← 無敵でなければ消す
       if (lives > 0) {
         lives--;
         hearts.children.entries[lives].setActive(false).setVisible(false);
@@ -919,12 +920,19 @@ function collectItem(player, item) {
           player.clearTint();
         }, 3000);
       }
+      // 次のアイテムを出す処理は、爆弾を消した場合のみ呼ぶ
+      this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this);
     }
   } else {
+    // キャンディ・ドーナツ・星は普通に消す＆スコア加算
+    item.disableBody(true, true);
+    this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this)
     if (item.texture.key === 'candy') {
       score += 3;
     } else if (item.texture.key === 'donut') {
       score += 9;
+    } else if (item.texture.key === 'star') {
+      score += 1000; // ← 星は1000点！
     }
     document.getElementById("score").textContent = "SCORE: " + score;
   }
