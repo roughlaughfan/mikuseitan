@@ -482,12 +482,7 @@ function create() {
     loop: true
   });
 
-  this.time.addEvent({
-    delay: 500,
-    callback: checkAndSpawn,
-    callbackScope: this,
-    loop: true
-  });
+startSpawnTimer(this);
 
   this.input.once('pointerdown', () => {
     this.sound.context.resume();
@@ -649,11 +644,36 @@ function showKatakanaBackground(scene) {
 
   // フェード切替（既存 background Images に対して alpha tween）
   backgrounds_str.forEach((bg, idx) => {
-    scene.tweens.add({
-      targets: bg,
-      alpha: idx === imgKeyIndex ? 1 : 0,
-      duration: 500,
-    });
+    if (idx === imgKeyIndex) {
+      bg.setScale(0, 0.8);
+      bg.setAlpha(1);
+      scene.tweens.add({
+        targets: bg,
+        scaleX: 1,
+        scaleY: 1.05,   // 少し大きく出てから
+        duration: 500,
+        ease: 'Back.easeOut',
+        onComplete: () => {
+          // 最終的に元の大きさへ
+          scene.tweens.add({
+            targets: bg,
+            scaleY: 1,
+            duration: 200,
+            ease: 'Cubic.easeOut'
+          });
+        }
+      });
+    } else {
+      scene.tweens.add({
+        targets: bg,
+        scaleX: 0,
+        duration: 500,
+        ease: 'Cubic.easeIn',
+        onComplete: () => {
+          bg.setAlpha(0);
+        }
+      });
+    }
   });
 
   // また表示済み配列の末尾に入れて、全て使い切ったら再構成：連続重複回避
@@ -728,12 +748,22 @@ function startKatakanaPhase(scene) {
     }
     if (charIndex < word.length) {
       const ch = word[charIndex];
-      const isLastChar = (charIndex === word.length - 1);
-      spawnKatakanaPhaser(scene, ch, isLastChar);
-      charIndex++;
-      const interval = computeKatakanaIntervalMs();
-      const t = scene.time.delayedCall(interval, spawnNextChar, [], scene);
-      eventTimers.push(t);
+      spawnKatakanaPhaser(scene, ch);
+
+      // ★ ポーリングで監視：前の文字が消えたら次へ
+      const checker = scene.time.addEvent({
+        delay: 500, // 0.5秒ごとに確認
+        callback: () => {
+          // activeな eventItems が残っているか？
+          if (eventItems.countActive(true) === 0) {
+            checker.remove(); // 監視を止める
+            charIndex++;
+            spawnNextChar(); // 次の文字へ
+          }
+        },
+        loop: true
+      });
+      eventTimers.push(checker);
     } else {
       // すべての文字を出し終えた → 全て落ちて壊れるまで表示させたいので、
       // 安全側で「十分な待ち時間」を置いてから終了処理に入る（文字数や速度で変わるため余裕を持たせる）
@@ -783,6 +813,28 @@ function checkAndSpawn() {
   }
 }
 
+// アイテム生成を開始する関数
+function startSpawnTimer(scene) {
+  let baseDelay = 500; // 初期生成間隔(ms)
+
+  function scheduleNext() {
+    checkAndSpawn.call(scene);
+
+    // 経過時間に応じて生成間隔を短縮（最短200msまで）
+    const levelUp = Math.floor(gameTime / speedInterval);
+    const newDelay = Math.max(baseDelay - levelUp * 20, 200);
+
+    scene.time.addEvent({
+      delay: newDelay,
+      callback: scheduleNext,
+      callbackScope: scene
+    });
+  }
+
+  scheduleNext(); // 最初の呼び出し
+}
+
+
 function spawnItem(group = normalItems) { // ★ デフォルト引数を normalItems に変更
   if (gameOver) return;
 
@@ -796,6 +848,10 @@ function spawnItem(group = normalItems) { // ★ デフォルト引数を normal
   const levelUp = Math.floor(gameTime / speedInterval);
   const currentSpeed = speedBase + levelUp * speedIncrease;
 
+  // ★ 落下速度にランダム性を追加（例：±50%の幅）
+  const randomFactor = Phaser.Math.FloatBetween(0.1, 3.0);
+  const finalSpeed = currentSpeed * randomFactor;
+  
   item.setVelocityY(currentSpeed);
   item.originalSpeed = currentSpeed;
 }
