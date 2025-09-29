@@ -51,6 +51,7 @@ const cellSize = 30;               // 1マス幅（爆弾の見た目に合わ�
 // katakanaWords は既存の参照JSから引っ張れます。ここでは既存の配列を使う前提。
 
 let gameStarted = false; // ゲーム開始フラグ
+let bgm = null;
 
 
 function preload() {
@@ -70,6 +71,13 @@ function preload() {
   this.load.image("s_bg03", "asset/images/bg03.png");
   this.load.image("s_bg04", "asset/images/bg04.png");
   this.load.image("s_bg05", "asset/images/bg05.png");
+  this.load.audio('bgm', 'asset/sounds/bgm.mp3');
+  this.load.audio('se_item', 'asset/sounds/item.mp3');     // ドーナツ & キャンディ
+  this.load.audio('se_star', 'asset/sounds/star.mp3');     // 星
+  this.load.audio('se_bomb', 'asset/sounds/bomb.mp3');     // 爆弾
+  this.load.audio('se_gameover', 'asset/sounds/gameover.mp3');
+  this.load.audio('se_clear', 'asset/sounds/clear.mp3');
+  this.load.audio('se_jump', 'asset/sounds/jump.mp3');
 }
 
 
@@ -430,6 +438,16 @@ function create() {
 
 
 
+  // 効果音を変数に保持（後で呼び出しやすくする）
+  this.se_item = this.sound.add('se_item');
+  this.se_star = this.sound.add('se_star');
+  this.se_bomb = this.sound.add('se_bomb');
+  this.se_gameover = this.sound.add('se_gameover');
+  this.se_clear = this.sound.add('se_clear');
+  this.se_jump = this.sound.add('se_jump');
+
+
+
   gameScene = this;
   gameScene.physics.resume();
 
@@ -740,7 +758,7 @@ function showKatakanaBackground(scene) {
   function flipChangeBackground(scene, bgSprite, newTextureKey, duration = 700) {
     // pipeline が登録されていればそれを使い、なければ scaleX の疑似フリップを使う
     if (scene.flipPipeline) {
-        bgSprite.setPipeline(scene.flipPipeline);
+      bgSprite.setPipeline(scene.flipPipeline);
       // pipeline インスタンスを sprite に適用
       // setPipeline はインスタンスかキーのどちらも受け取れる実装が多いので安全にインスタンスを渡す
 
@@ -986,6 +1004,7 @@ function collectEventItem(player, item) {
   // ★ ここに collectItem() からの爆弾処理を移動
   if (item.texture.key === 'bomb') {
     if (!isInvincible) {
+      this.se_bomb.play(); // ★ 爆弾音
       if (lives > 0) {
         lives--;
         hearts.children.entries[lives].setActive(false).setVisible(false);
@@ -1009,6 +1028,15 @@ function collectEventItem(player, item) {
         }, 3000);
       }
     }
+  } else {
+    // キャンディ・ドーナツ・星は普通に消す＆スコア加算
+    item.disableBody(true, true);
+    this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this)
+    if (item.texture.key === 'star') {
+      this.se_star.play(); // ★ 星専用音
+      score += 1000; // ← 星は1000点！
+    }
+    document.getElementById("score").textContent = "SCORE: " + score;
   }
 }
 
@@ -1019,6 +1047,7 @@ function collectItem(player, item) {
     // 爆弾の場合の処理
     if (!isInvincible) { // 無敵状態でない場合のみダメージを受ける
       item.disableBody(true, true); // ← 無敵でなければ消す
+      this.se_bomb.play(); // ★ 爆弾音
       if (lives > 0) {
         lives--;
         hearts.children.entries[lives].setActive(false).setVisible(false);
@@ -1033,6 +1062,11 @@ function collectItem(player, item) {
         gameScreen.style.display = 'none';
         gameOverScreen.style.display = 'flex';
         document.getElementById('final-score-over').textContent = score;
+        this.se_gameover.play(); // ★ ゲームオーバー音
+        // ★BGM停止ロジック: BGMがロードされ、かつ再生中であれば停止する
+        if (bgm && bgm.isPlaying) {
+          bgm.stop();
+        }
       } else {
         // 無敵状態を開始
         isInvincible = true;
@@ -1047,16 +1081,16 @@ function collectItem(player, item) {
       this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this);
     }
   } else {
-    // キャンディ・ドーナツ・星は普通に消す＆スコア加算
+    // キャンディ・ドーナツは普通に消す＆スコア加算
     item.disableBody(true, true);
     this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this)
     if (item.texture.key === 'candy') {
+      this.se_item.play(); // ★ 共通音
       score += 3;
     } else if (item.texture.key === 'donut') {
+      this.se_item.play(); // ★ 共通音
       score += 9;
-    } else if (item.texture.key === 'star') {
-      score += 1000; // ← 星は1000点！
-    }
+    } 
     document.getElementById("score").textContent = "SCORE: " + score;
   }
 }
@@ -1102,6 +1136,7 @@ function update(time, delta) {
 
   if (up && player.body.touching.down) {
     player.setVelocityY(-330);
+    this.se_jump.play(); // ★ ジャンプ音を鳴らす
   }
 
   if (down) {
@@ -1138,6 +1173,11 @@ function update(time, delta) {
     gameScreen.style.display = 'none';
     gameClearScreen.style.display = 'flex';
     document.getElementById('final-score-clear').textContent = score;
+    this.se_clear.play(); // ★ クリア音
+    // ★BGM停止ロジック: BGMがロードされ、かつ再生中であれば停止する
+    if (bgm && bgm.isPlaying) {
+      bgm.stop();
+    }
   }
 }
 
@@ -1163,6 +1203,7 @@ window.addEventListener('DOMContentLoaded', () => {
     gameStarted = true;
     startScreen.style.display = 'none';
     gameScreen.style.display = 'block';
+    playBGM();
 
     // 物理エンジンを再開
     gameScene.scene.restart();
@@ -1178,6 +1219,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
 });
 
+function playBGM() {
+  // gameSceneが未定義の場合（ロード完了前など）は処理しない
+  if (!gameScene || !gameScene.sound) return;
+
+  // BGMがまだ作成されていない場合のみ作成する
+  if (bgm === null || !bgm.key) {
+    // Phaserのサウンドシステムを使ってBGMオブジェクトを作成
+    // { loop: true } でループ再生を設定
+    bgm = gameScene.sound.add('bgm', { loop: true, volume: 0.5 });
+  }
+
+  // BGMが停止中の場合のみ再生（すでに再生中の場合は何もしない）
+  if (!bgm.isPlaying) {
+    bgm.play();
+  }
+}
 
 function restartGame() {
   // 画面
@@ -1185,6 +1242,7 @@ function restartGame() {
   gameClearScreen.style.display = 'none';
   gameScreen.style.display = 'block';
   document.getElementById("score").textContent = "Score: 0";
+  playBGM();
 
   // 古いイベントタイマー類を消す
   clearAllEventTimers(gameScene);
@@ -1201,6 +1259,7 @@ function restartGame() {
 
   // シーン再起動
   gameScene.scene.restart();
+
 
   // （保険）短時間後に物理エンジンが停止していたら再開する処理
   // create() の修正を入れたなら不要だが、安全策として入れておくとデバッグが楽になります
