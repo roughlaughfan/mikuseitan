@@ -375,7 +375,61 @@ let katakanaWords = [
   ["オ", "メ", "デ", "ト", "ウ"]
 ];
 
+class FlipPipeline extends Phaser.Renderer.WebGL.Pipelines.SinglePipeline {
+  constructor(game) {
+    super({
+      game,
+      fragShader: `
+      precision mediump float;
+      uniform sampler2D uMainSampler;
+      uniform float uRotation;
+      varying vec2 outTexCoord;
+      void main() {
+        vec2 uv = outTexCoord - 0.5;
+        float a = uRotation; // expecting radians
+        float ca = cos(a);
+        float sa = sin(a);
+        float rx = uv.x * ca;
+        float depth = abs(uv.x * sa);
+        float perspective = 1.0 / (1.0 + 0.5 * depth);
+        vec2 mapped = vec2(rx, uv.y) * perspective + 0.5;
+        if (mapped.x < 0.0 || mapped.x > 1.0 || mapped.y < 0.0 || mapped.y > 1.0) {
+          gl_FragColor = vec4(0.0,0.0,0.0,0.0);
+          return;
+        }
+        vec4 color = texture2D(uMainSampler, mapped);
+        float shading = 0.5 + 0.5 * ca;
+        color.rgb *= mix(0.6, 1.0, shading);
+        gl_FragColor = color;
+      }
+      `,
+      uniforms: ['uProjectionMatrix', 'uMainSampler', 'uRotation']
+    });
+    // pipeline 用プロパティ（任意）
+    this.rotation = 0;
+  }
+
+  onPreRender() {
+    // Phaser のバージョンに合わせて set1f を使用する例（安定）
+    if (typeof this.set1f === 'function') {
+      this.set1f('uRotation', this.rotation || 0);
+    } else if (typeof this.setFloat1 === 'function') {
+      this.setFloat1('uRotation', this.rotation || 0);
+    }
+  }
+}
+
+
 function create() {
+  console.log('this.renderer:', this.renderer);
+  console.log('this.game.renderer:', this.game && this.game.renderer);
+  console.log('renderer.addPipeline exists?:', this.game && this.game.renderer && typeof this.game.renderer.addPipeline);
+  console.log('Renderer type (number):', this.game && this.game.renderer && this.game.renderer.type);
+  console.log('Phaser.WEBGL constant:', Phaser.WEBGL);
+  console.log('Is WebGL available on window:', !!window.WebGLRenderingContext);
+
+
+
   gameScene = this;
   gameScene.physics.resume();
 
@@ -404,6 +458,41 @@ function create() {
   const s_bg4 = this.add.image(0, 0, "s_bg04").setOrigin(0, 0).setAlpha(0);
   const s_bg5 = this.add.image(0, 0, "s_bg05").setOrigin(0, 0).setAlpha(0);
   backgrounds_str = [s_bg1, s_bg2, s_bg3, s_bg4, s_bg5];
+
+  // create() の先頭付近に入れる（FlipPipeline クラス定義の後）
+  const renderer = (this.game && this.game.renderer) ? this.game.renderer : this.renderer;
+
+  // Try modern pipelines API first, then legacy addPipeline, else fallback
+  // if (renderer && renderer.pipelines && typeof renderer.pipelines.add === 'function') {
+  //   this.flipPipeline = renderer.pipelines.add('FlipY', new FlipPipeline(this.game));
+  //   console.log('Flip pipeline registered (pipelines.add):', !!this.flipPipeline);
+  // } else if (renderer && typeof renderer.addPipeline === 'function') {
+  //   // 古いバージョンの互換処理（稀）
+  //   this.flipPipeline = renderer.addPipeline('FlipY', new FlipPipeline(this.game));
+  //   console.log('Flip pipeline registered (addPipeline):', !!this.flipPipeline);
+  // } else {
+  //   console.warn('Flip pipeline not available — falling back to scaleX flip.');
+  //   this.flipPipeline = null;
+  // }
+
+
+  if (renderer && typeof renderer.addPipeline === 'function') {
+    // WebGL renderer で addPipeline が使える場合
+    try {
+      this.flipPipeline = this.renderer.pipelines.add(
+        'flipPipeline',
+        new FlipPipeline(this.game)
+      );
+      console.log('Flip pipeline registered (pipelines.add):', !!this.flipPipeline);
+    } catch (e) {
+      console.warn('Pipeline unavailable, falling back to scaleX flip:', e);
+      this.flipPipeline = null;
+    }
+  } else {
+    // Pipeline API が無い -> Canvas renderer の可能性または環境依存
+    console.warn('addPipeline not available. Renderer:', renderer);
+    console.warn('Pipeline (WebGL) is unavailable — falling back to scaleX flip.');
+  }
 
 
 
@@ -500,6 +589,8 @@ function create() {
     this.physics.pause();
   }
 }
+
+
 
 // ===== 難易度設定用パラメータ =====
 let difficulty = "normal";  // "easy", "normal", "hard" など切替予定
@@ -630,6 +721,8 @@ function showKatakanaBackground(scene) {
   // backgrounds[] は create() で作った Phaser Image 配列を使う想定
   if (!backgrounds_str || backgrounds_str.length === 0) return;
 
+
+
   // 決める画像インデックス
   let imgKeyIndex;
   if (katBgQueue.length === 0) {
@@ -644,39 +737,69 @@ function showKatakanaBackground(scene) {
 
   imgKeyIndex = katBgQueue.shift();
 
-  // フェード切替（既存 background Images に対して alpha tween）
-  backgrounds_str.forEach((bg, idx) => {
-    if (idx === imgKeyIndex) {
-      bg.setScale(0, 0.8);
-      bg.setAlpha(1);
-      scene.tweens.add({
-        targets: bg,
-        scaleX: 1,
-        scaleY: 1.05,   // 少し大きく出てから
-        duration: 500,
-        ease: 'Back.easeOut',
+  function flipChangeBackground(scene, bgSprite, newTextureKey, duration = 700) {
+    // pipeline が登録されていればそれを使い、なければ scaleX の疑似フリップを使う
+    if (scene.flipPipeline) {
+        bgSprite.setPipeline(scene.flipPipeline);
+      // pipeline インスタンスを sprite に適用
+      // setPipeline はインスタンスかキーのどちらも受け取れる実装が多いので安全にインスタンスを渡す
+
+
+      // 初期値
+      scene.flipPipeline.rotation = 0;
+      if (typeof scene.flipPipeline.set1f === 'function') {
+        scene.flipPipeline.set1f('uRotation', 0);
+      }
+
+      let swapped = false;
+      scene.tweens.addCounter({
+        from: 0,
+        to: Math.PI * 2,
+        duration: duration,
+        ease: 'Cubic.easeInOut',
+        onUpdate: (tween) => {
+          const val = tween.getValue();
+          // uniform 更新（set1f があればそれを使う）
+          if (typeof scene.flipPipeline.set1f === 'function') {
+            scene.flipPipeline.set1f('uRotation', val);
+          } else {
+            scene.flipPipeline.rotation = val;
+          }
+          // 90度(π/2)超えたらテクスチャ差し替え（１回）
+          if (!swapped && val >= Math.PI / 2) {
+            swapped = true;
+            bgSprite.setTexture(newTextureKey);
+          }
+        },
         onComplete: () => {
-          // 最終的に元の大きさへ
+          // pipeline を外したければ resetPipeline()
+          try { bgSprite.resetPipeline(); } catch (e) { }
+          if (typeof scene.flipPipeline.set1f === 'function') {
+            scene.flipPipeline.set1f('uRotation', 0);
+          }
+        }
+      });
+    } else {
+      // フォールバック：既存の scaleX 疑似フリップ
+      bgSprite.setAlpha(1);
+      scene.tweens.add({
+        targets: bgSprite,
+        scaleX: 0,
+        duration: duration / 2,
+        ease: 'Cubic.easeIn',
+        onComplete: () => {
+          bgSprite.setTexture(newTextureKey);
           scene.tweens.add({
-            targets: bg,
-            scaleY: 1,
-            duration: 200,
+            targets: bgSprite,
+            scaleX: 1,
+            duration: duration / 2,
             ease: 'Cubic.easeOut'
           });
         }
       });
-    } else {
-      scene.tweens.add({
-        targets: bg,
-        scaleX: 0,
-        duration: 500,
-        ease: 'Cubic.easeIn',
-        onComplete: () => {
-          bg.setAlpha(0);
-        }
-      });
     }
-  });
+  }
+
 
   // また表示済み配列の末尾に入れて、全て使い切ったら再構成：連続重複回避
   katBgQueue.push(imgKeyIndex);
