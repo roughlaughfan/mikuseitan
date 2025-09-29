@@ -71,6 +71,13 @@ function preload() {
   this.load.image("s_bg03", "asset/images/bg03.png");
   this.load.image("s_bg04", "asset/images/bg04.png");
   this.load.image("s_bg05", "asset/images/bg05.png");
+  this.load.image("s_bg06", "asset/images/bg06.png");
+  this.load.image("s_bg07", "asset/images/bg07.png");
+  this.load.image("s_bg08", "asset/images/bg08.png");
+  this.load.image("s_bg09", "asset/images/bg09.png");
+  this.load.image("s_hint01", "asset/images/hint_bg.png");
+  this.load.image("s_hint02", "asset/images/hint_bg02.png");
+  this.load.image("s_hint03", "asset/images/hint_bg03.png");
   this.load.audio('bgm', 'asset/sounds/bgm.mp3');
   this.load.audio('se_item', 'asset/sounds/item.mp3');     // ドーナツ & キャンディ
   this.load.audio('se_star', 'asset/sounds/star.mp3');     // 星
@@ -429,14 +436,6 @@ class FlipPipeline extends Phaser.Renderer.WebGL.Pipelines.SinglePipeline {
 
 
 function create() {
-  console.log('this.renderer:', this.renderer);
-  console.log('this.game.renderer:', this.game && this.game.renderer);
-  console.log('renderer.addPipeline exists?:', this.game && this.game.renderer && typeof this.game.renderer.addPipeline);
-  console.log('Renderer type (number):', this.game && this.game.renderer && this.game.renderer.type);
-  console.log('Phaser.WEBGL constant:', Phaser.WEBGL);
-  console.log('Is WebGL available on window:', !!window.WebGLRenderingContext);
-
-
 
   // 効果音を変数に保持（後で呼び出しやすくする）
   this.se_item = this.sound.add('se_item');
@@ -475,23 +474,17 @@ function create() {
   const s_bg3 = this.add.image(0, 0, "s_bg03").setOrigin(0, 0).setAlpha(0);
   const s_bg4 = this.add.image(0, 0, "s_bg04").setOrigin(0, 0).setAlpha(0);
   const s_bg5 = this.add.image(0, 0, "s_bg05").setOrigin(0, 0).setAlpha(0);
-  backgrounds_str = [s_bg1, s_bg2, s_bg3, s_bg4, s_bg5];
+  const s_bg6 = this.add.image(0, 0, "s_bg06").setOrigin(0, 0).setAlpha(0);
+  const s_bg7 = this.add.image(0, 0, "s_bg07").setOrigin(0, 0).setAlpha(0);
+  const s_bg8 = this.add.image(0, 0, "s_bg08").setOrigin(0, 0).setAlpha(0);
+  const s_bg9 = this.add.image(0, 0, "s_bg09").setOrigin(0, 0).setAlpha(0);
+  const s_hint01 = this.add.image(0, 0, "s_hint01").setOrigin(0, 0).setAlpha(0);
+  const s_hint02 = this.add.image(0, 0, "s_hint02").setOrigin(0, 0).setAlpha(0);
+  const s_hint03 = this.add.image(0, 0, "s_hint03").setOrigin(0, 0).setAlpha(0);
+  backgrounds_str = [s_hint01, s_hint02 ,s_hint03, s_bg1, s_bg2, s_bg3, s_bg4, s_bg5, s_bg6, s_bg7, s_bg8, s_bg9];
 
   // create() の先頭付近に入れる（FlipPipeline クラス定義の後）
   const renderer = (this.game && this.game.renderer) ? this.game.renderer : this.renderer;
-
-  // Try modern pipelines API first, then legacy addPipeline, else fallback
-  // if (renderer && renderer.pipelines && typeof renderer.pipelines.add === 'function') {
-  //   this.flipPipeline = renderer.pipelines.add('FlipY', new FlipPipeline(this.game));
-  //   console.log('Flip pipeline registered (pipelines.add):', !!this.flipPipeline);
-  // } else if (renderer && typeof renderer.addPipeline === 'function') {
-  //   // 古いバージョンの互換処理（稀）
-  //   this.flipPipeline = renderer.addPipeline('FlipY', new FlipPipeline(this.game));
-  //   console.log('Flip pipeline registered (addPipeline):', !!this.flipPipeline);
-  // } else {
-  //   console.warn('Flip pipeline not available — falling back to scaleX flip.');
-  //   this.flipPipeline = null;
-  // }
 
 
   if (renderer && typeof renderer.addPipeline === 'function') {
@@ -734,6 +727,8 @@ function spawnKatakanaPhaser(scene, char, isLastChar = false) {
   });
 }
 
+
+
 function showKatakanaBackground(scene) {
   if (!backgrounds_str || backgrounds_str.length === 0) return;
 
@@ -744,8 +739,8 @@ function showKatakanaBackground(scene) {
       ? katBgFirstIndexByDifficulty[d]
       : 0;
 
-    // 残りをシャッフル
-    const otherIndices = backgrounds_str.map((_, i) => i).filter(i => i !== fixedIndex);
+        // ヒント背景以外を抽出（s_bg01〜09）
+    const otherIndices = backgrounds_str.map((_, i) => i).filter(i => i > 2);
     Phaser.Utils.Array.Shuffle(otherIndices);
 
     // 最初だけ固定 → その後シャッフル
@@ -1219,7 +1214,7 @@ function update(time, delta) {
 
   }
 
-  if (score >= 100000000 && !gameClear) {
+  if (score >= 10000000000 && !gameClear) {
     this.physics.pause();
     gameClear = true;
 
