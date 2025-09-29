@@ -785,6 +785,11 @@ function flipInBackground(scene, bgSprite, newTextureKey, duration = 700) {
   bgSprite.displayHeight = scene.scale.height;
   bgSprite.setVisible(true);
 
+    // 重要：表示できるように alpha と visible を確実に設定
+  bgSprite.setAlpha(1);
+  bgSprite.setVisible(true);
+
+
   if (scene.flipPipeline) {
     bgSprite.setPipeline(scene.flipPipeline);
     scene.flipPipeline.rotation = 0;
@@ -1082,7 +1087,7 @@ function collectEventItem(player, item) {
     this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this)
     if (item.texture.key === 'star') {
       this.se_star.play(); // ★ 星専用音
-      score += 1000; // ← 星は1000点！
+      score += 50000000; // ← 星は1000点！
     }
     document.getElementById("score").textContent = "SCORE: " + score;
   }
