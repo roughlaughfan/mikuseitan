@@ -22,7 +22,7 @@ let hearts;
 let items;
 let gameOver = false;
 let gameClear = false;
-let maxNormalItems = 10;  // 通常アイテムの上限
+let maxNormalItems = 15;  // 通常アイテムの上限
 let normalItems;
 let eventItems;
 let gameTime = 0;
@@ -735,98 +735,136 @@ function spawnKatakanaPhaser(scene, char, isLastChar = false) {
 }
 
 function showKatakanaBackground(scene) {
-  // 背景一枚目は難易度により固定、それ以降は katBgQueue (シャッフル済み) で回す
-  // backgrounds[] は create() で作った Phaser Image 配列を使う想定
   if (!backgrounds_str || backgrounds_str.length === 0) return;
 
-
-
-  // 決める画像インデックス
-  let imgKeyIndex;
+  // === キューが空なら初期化 ===
   if (katBgQueue.length === 0) {
-    // 初回表示：難易度対応の固定を先頭に、残りをシャッフル（続けて同じ画像がでないように）
     const d = difficulty || 'normal';
-    const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined ? katBgFirstIndexByDifficulty[d] : 0;
+    const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined
+      ? katBgFirstIndexByDifficulty[d]
+      : 0;
+
+    // 残りをシャッフル
     const otherIndices = backgrounds_str.map((_, i) => i).filter(i => i !== fixedIndex);
-    // shuffle
     Phaser.Utils.Array.Shuffle(otherIndices);
+
+    // 最初だけ固定 → その後シャッフル
     katBgQueue = [fixedIndex].concat(otherIndices);
   }
 
-  imgKeyIndex = katBgQueue.shift();
+  // === 次に使う背景を取得 ===
+  let imgKeyIndex = katBgQueue.shift();
 
-  function flipChangeBackground(scene, bgSprite, newTextureKey, duration = 700) {
-    // pipeline が登録されていればそれを使い、なければ scaleX の疑似フリップを使う
-    if (scene.flipPipeline) {
-      bgSprite.setPipeline(scene.flipPipeline);
-      // pipeline インスタンスを sprite に適用
-      // setPipeline はインスタンスかキーのどちらも受け取れる実装が多いので安全にインスタンスを渡す
-
-
-      // 初期値
-      scene.flipPipeline.rotation = 0;
-      if (typeof scene.flipPipeline.set1f === 'function') {
-        scene.flipPipeline.set1f('uRotation', 0);
-      }
-
-      let swapped = false;
-      scene.tweens.addCounter({
-        from: 0,
-        to: Math.PI * 2,
-        duration: duration,
-        ease: 'Cubic.easeInOut',
-        onUpdate: (tween) => {
-          const val = tween.getValue();
-          // uniform 更新（set1f があればそれを使う）
-          if (typeof scene.flipPipeline.set1f === 'function') {
-            scene.flipPipeline.set1f('uRotation', val);
-          } else {
-            scene.flipPipeline.rotation = val;
-          }
-          // 90度(π/2)超えたらテクスチャ差し替え（１回）
-          if (!swapped && val >= Math.PI / 2) {
-            swapped = true;
-            bgSprite.setTexture(newTextureKey);
-          }
-        },
-        onComplete: () => {
-          // pipeline を外したければ resetPipeline()
-          try { bgSprite.resetPipeline(); } catch (e) { }
-          if (typeof scene.flipPipeline.set1f === 'function') {
-            scene.flipPipeline.set1f('uRotation', 0);
-          }
-        }
-      });
-    } else {
-      // フォールバック：既存の scaleX 疑似フリップ
-      bgSprite.setAlpha(1);
-      scene.tweens.add({
-        targets: bgSprite,
-        scaleX: 0,
-        duration: duration / 2,
-        ease: 'Cubic.easeIn',
-        onComplete: () => {
-          bgSprite.setTexture(newTextureKey);
-          scene.tweens.add({
-            targets: bgSprite,
-            scaleX: 1,
-            duration: duration / 2,
-            ease: 'Cubic.easeOut'
-          });
-        }
-      });
+  // === キューが空になったら再構築（連続同一防止あり） ===
+  if (katBgQueue.length === 0) {
+    const allIndices = backgrounds_str.map((_, i) => i);
+    Phaser.Utils.Array.Shuffle(allIndices);
+    if (allIndices[0] === imgKeyIndex && allIndices.length > 1) {
+      // 先頭が直前と同じなら入れ替え
+      [allIndices[0], allIndices[1]] = [allIndices[1], allIndices[0]];
     }
+    katBgQueue = allIndices;
   }
 
+  // === 実際の sprite ===
+  const targetSprite = backgrounds_str[imgKeyIndex];
 
-  // また表示済み配列の末尾に入れて、全て使い切ったら再構成：連続重複回避
-  katBgQueue.push(imgKeyIndex);
-  // 再度同じ順番が続かない簡易処理
-  if (katBgQueue.length > backgrounds_str.length) {
-    // trim（実装の安全策）
-    katBgQueue = katBgQueue.slice(0, backgrounds_str.length);
+  // 背景を登場させる
+  flipInBackground(scene, targetSprite, targetSprite.texture.key);
+
+  // return しておくと、特殊イベント終了時に flipOutBackground を呼べる
+  return targetSprite;
+}
+
+
+// === 背景登場 ===
+function flipInBackground(scene, bgSprite, newTextureKey, duration = 700) {
+  bgSprite.setOrigin(0.5, 0.5);
+  bgSprite.setPosition(scene.scale.width / 2, scene.scale.height / 2);
+  bgSprite.displayWidth = scene.scale.width;
+  bgSprite.displayHeight = scene.scale.height;
+  bgSprite.setVisible(true);
+
+  if (scene.flipPipeline) {
+    bgSprite.setPipeline(scene.flipPipeline);
+    scene.flipPipeline.rotation = 0;
+    if (typeof scene.flipPipeline.set1f === 'function') {
+      scene.flipPipeline.set1f('uRotation', 0);
+    }
+
+    let swapped = false;
+    scene.tweens.addCounter({
+      from: 0,
+      to: Math.PI,
+      duration: duration,
+      ease: 'Cubic.easeInOut',
+      onUpdate: (tween) => {
+        const val = tween.getValue();
+        if (typeof scene.flipPipeline.set1f === 'function') {
+          scene.flipPipeline.set1f('uRotation', val);
+        } else {
+          scene.flipPipeline.rotation = val;
+        }
+        if (!swapped && val >= Math.PI / 2) {
+          swapped = true;
+          bgSprite.setTexture(newTextureKey);
+        }
+      }
+      // onComplete では pipeline をリセットせず保持
+    });
+  } else {
+    // フォールバック
+    bgSprite.setScale(0, 1);
+    bgSprite.setTexture(newTextureKey);
+    scene.tweens.add({
+      targets: bgSprite,
+      scaleX: 1,
+      duration: duration,
+      ease: 'Cubic.easeOut'
+    });
   }
 }
+
+
+// === 背景退場 ===
+function flipOutBackground(scene, bgSprite, duration = 700) {
+  if (scene.flipPipeline) {
+    scene.flipPipeline.rotation = 0;
+    if (typeof scene.flipPipeline.set1f === 'function') {
+      scene.flipPipeline.set1f('uRotation', 0);
+    }
+
+    scene.tweens.addCounter({
+      from: 0,
+      to: Math.PI,
+      duration: duration,
+      ease: 'Cubic.easeInOut',
+      onUpdate: (tween) => {
+        const val = tween.getValue();
+        if (typeof scene.flipPipeline.set1f === 'function') {
+          scene.flipPipeline.set1f('uRotation', val);
+        } else {
+          scene.flipPipeline.rotation = val;
+        }
+      },
+      onComplete: () => {
+        bgSprite.setVisible(false);
+        try { bgSprite.resetPipeline(); } catch (e) {}
+      }
+    });
+  } else {
+    scene.tweens.add({
+      targets: bgSprite,
+      scaleX: 0,
+      duration: duration,
+      ease: 'Cubic.easeIn',
+      onComplete: () => {
+        bgSprite.setVisible(false);
+      }
+    });
+  }
+}
+
 
 // ---------- メイン：特殊イベントの流れ制御 ----------
 function startSpecialEventLoop(scene) {
@@ -864,10 +902,19 @@ function runSpecialCycle(scene) {
 }
 
 function startKatakanaPhase(scene) {
+  const d = difficulty || 'normal';
+  const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined
+    ? katBgFirstIndexByDifficulty[d]
+    : 0;
+  const targetSprite = backgrounds_str[fixedIndex];
+  targetSprite.setVisible(true);
+
+  flipInBackground(scene, targetSprite, targetSprite.texture.key);
+
+  console.log("Katakana Phase Started!");
   inKatakanaEvent = true; // ★追加：カタカナイベント開始時にフラグを立てる
   // checkAndSpawn 停止は inKatakanaEvent を参照している前提
   // 背景切替（最初の背景は難易度固定）
-  showKatakanaBackground(scene);
 
   // 出すカタカナ単語は、specialCycleCount に応じて変えたい（2回目は指定順）
   // 既存の katakanaWords が配列 of arrays で定義されている想定
@@ -913,6 +960,7 @@ function startKatakanaPhase(scene) {
       const waitMs = 3000; // 実機で調整してください（文字が落ち切る目安）
       const endT = scene.time.delayedCall(waitMs, () => {
         inKatakanaEvent = false; // ★修正：カタカナイベントも終了
+        flipOutBackground(scene, targetSprite)
         backgrounds_str.forEach((bg) => {
           scene.tweens.add({
             targets: bg,
@@ -1090,7 +1138,7 @@ function collectItem(player, item) {
     } else if (item.texture.key === 'donut') {
       this.se_item.play(); // ★ 共通音
       score += 9;
-    } 
+    }
     document.getElementById("score").textContent = "SCORE: " + score;
   }
 }
@@ -1210,12 +1258,30 @@ window.addEventListener('DOMContentLoaded', () => {
 
   });
 
-  restartButtonOver.addEventListener('click', restartGame);
-  restartButtonClear.addEventListener('click', restartGame);
+  restartButtonOver.addEventListener('click', () => {
+    gameScene.sound.stopAll();
+    restartGame();
+  });
+  restartButtonClear.addEventListener('click', () => {
+    gameScene.sound.stopAll();
+    restartGame();
+  });
+
+  backButtonOver.addEventListener('click', () => {
+    gameScene.sound.stopAll();
+    backToStart();
+  });
+  backButtonClear.addEventListener('click', () => {
+    gameScene.sound.stopAll();
+    backToStart();
+  });
+
+  // restartButtonOver.addEventListener('click', restartGame);
+  // restartButtonClear.addEventListener('click', restartGame);
 
   // ★追加：スタートに戻るボタン
-  backButtonOver.addEventListener('click', backToStart);
-  backButtonClear.addEventListener('click', backToStart);
+  // backButtonOver.addEventListener('click', backToStart);
+  // backButtonClear.addEventListener('click', backToStart);
 
 });
 
@@ -1235,6 +1301,8 @@ function playBGM() {
     bgm.play();
   }
 }
+
+
 
 function restartGame() {
   // 画面
