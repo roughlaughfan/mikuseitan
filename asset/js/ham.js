@@ -78,7 +78,7 @@
             minSpeed: 5, maxSpeed: 9, speedInterval: 20,
             dropIntervalBase: 400, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg.png',
-            bgImages: ['asset/images/bg01.png','asset/images/bg02.png','asset/images/bg03.png'],
+            bgImages: ['asset/images/bg01.png','asset/images/bg02.png','asset/images/bg03.png','asset/images/bg04.png','asset/images/bg05.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
             katakanaWords: [
                 ["フ","ジ","サ","キ","ミ","ク"],
@@ -93,7 +93,7 @@
             minSpeed: 4, maxSpeed: 8, speedInterval: 20,
             dropIntervalBase: 600, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg02.png',
-            bgImages: ['asset/images/bg04.png','asset/images/bg05.png','asset/images/bg06.png'],
+            bgImages: ['asset/images/bg06.png','asset/images/bg07.png','asset/images/bg08.png','asset/images/bg09.png','asset/images/bg10.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
             katakanaWords: [
                 ["ミ","ク","チ","ャ","ン"],
@@ -108,7 +108,7 @@
             minSpeed: 3, maxSpeed: 7, speedInterval: 20,
             dropIntervalBase: 1000, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg03.png',
-            bgImages: ['asset/images/bg07.png','asset/images/bg08.png','asset/images/bg09.png'],
+            bgImages: ['asset/images/bg11.png','asset/images/bg12.png','asset/images/bg13.png','asset/images/bg14.png','asset/images/bg15.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
             katakanaWords: [
                 ["ポ","ス","タ","ー","ハ"],
