@@ -175,7 +175,7 @@ canvas {
     height: 100vh;
     width: 100vw;
     position: fixed;
-    z-index: 999;
+    z-index: 10999;
     top: 0;
     bottom: 0;
     left: 0;
