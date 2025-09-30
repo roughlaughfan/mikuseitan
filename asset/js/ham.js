@@ -1,1425 +1,759 @@
-const config = {
-  type: Phaser.AUTO,
-  width: 480,
-  height: 640,
-  backgroundColor: "#FFF",
-  parent: "game-screen",
-  physics: {
-    default: "arcade",
-    arcade: {
-      gravity: { y: 500 },
-      debug: false
-    }
-  },
-  scene: { preload, create, update }
-};
-
-
-let score = 0;
-let inputState = { left: false, right: false, up: false };
-let lives = 3;
-let hearts;
-let items;
-let gameOver = false;
-let gameClear = false;
-let maxNormalItems = 15;  // 通常アイテムの上限
-let normalItems;
-let eventItems;
-let gameTime = 0;
-let wasd;
-let player;
-
-let gameScene;
-
-let backgrounds = [];
-let activeBgIndex = 0;
-
-let backgrounds_str = [];
-
-const phaserGame = new Phaser.Game(config);
-
-// ---------- 追加グローバル変数（ファイル上部に置く） ----------
-let eventTimers = [];              // Phaser.TimerEvent を格納
-let inSpecialEvent = false;        // 汎用イベントフラグ（①②③全部）
-let inKatakanaEvent = false;       // イベント③フラグ（通常アイテム停止用）
-let katakanaPatternIndex = 0;      // どの単語を使うか
-let specialCycleCount = 0;         // イベントサイクルの回数（2回目で順番変える判定に使う）
-let katBgQueue = [];               // 背景キュー（シャッフルして回す）
-let katBgFirstIndexByDifficulty = { easy: 0, normal: 1, hard: 2 }; // 例：難易度に応じた最初の背景インデックス
-let maxCols = 0;                   // 横列生成で使う列数（create() で初期化）
-const cellSize = 30;               // 1マス幅（爆弾の見た目に合わせて調整）
-// katakanaWords は既存の参照JSから引っ張れます。ここでは既存の配列を使う前提。
-
-let gameStarted = false; // ゲーム開始フラグ
-let bgm = null;
-
-
-function preload() {
-  this.load.image("ground", "asset/images/ground.png");
-  this.load.image("star", "asset/images/star.png");
-  this.load.spritesheet("ham", "asset/images/ham.png", { frameWidth: 42, frameHeight: 50 });
-  this.load.image("donut", "asset/images/donut.png");
-  this.load.image("candy", "asset/images/candy.png");
-  this.load.image("bomb", "asset/images/bomb.png");
-  this.load.image("heart", "asset/images/heart.png");
-  this.load.image("heart_empty", "asset/images/heart_empty.png");
-  this.load.image("bg01", "asset/images/default_bg03.png");
-  this.load.image("bg02", "asset/images/default_bg02.png");
-  this.load.image("bg03", "asset/images/default_bg.png");
-  this.load.image("s_bg01", "asset/images/bg01.png");
-  this.load.image("s_bg02", "asset/images/bg02.png");
-  this.load.image("s_bg03", "asset/images/bg03.png");
-  this.load.image("s_bg04", "asset/images/bg04.png");
-  this.load.image("s_bg05", "asset/images/bg05.png");
-  this.load.image("s_bg06", "asset/images/bg06.png");
-  this.load.image("s_bg07", "asset/images/bg07.png");
-  this.load.image("s_bg08", "asset/images/bg08.png");
-  this.load.image("s_bg09", "asset/images/bg09.png");
-  this.load.image("s_hint01", "asset/images/hint_bg.png");
-  this.load.image("s_hint02", "asset/images/hint_bg02.png");
-  this.load.image("s_hint03", "asset/images/hint_bg03.png");
-  this.load.audio('bgm', 'asset/sounds/bgm.mp3');
-  this.load.audio('se_item', 'asset/sounds/item.mp3');     // ドーナツ & キャンディ
-  this.load.audio('se_star', 'asset/sounds/star.mp3');     // 星
-  this.load.audio('se_bomb', 'asset/sounds/bomb.mp3');     // 爆弾
-  this.load.audio('se_gameover', 'asset/sounds/gameover.mp3');
-  this.load.audio('se_clear', 'asset/sounds/clear.mp3');
-  this.load.audio('se_jump', 'asset/sounds/jump.mp3');
-}
-
-
-
-// カタカナ形状定義（7×7ドット、1マス=30px）
-const katakanaPatterns = {
-  "フ": [
-    [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1],
-    [5, 2],
-    [5, 3],
-    [4, 4],
-    [3, 5],
-    [1, 6], [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ジ": [
-    [0, 0], [2, 0], [4, 0], [6, 0],
-    [1, 1],
-    [0, 2], [4, 2],
-    [1, 3], [5, 3],
-    [4, 4],
-    [3, 5],
-    [0, 6], [1, 6], [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "サ": [
-    [2, 0], [4, 0],
-    [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1],
-    [2, 2], [4, 2],
-    [2, 3], [4, 3],
-    [5, 4],
-    [4, 5],
-    [2, 6], [3, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "キ": [
-    [3, 0],
-    [1, 1], [2, 1], [3, 1], [4, 1], [5, 1],
-    [3, 2],
-    [3, 3],
-    [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4],
-    [3, 5],
-    [3, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ミ": [
-    [1, 0], [2, 0], [3, 0],
-    [4, 1], [5, 1],
-    [2, 2],
-    [3, 3], [4, 3],
-    [1, 5], [2, 5], [3, 5],
-    [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ク": [
-    [2, 0],
-    [2, 1], [3, 1], [4, 1], [5, 1],
-    [1, 2], [5, 2],
-    [0, 3], [6, 3],
-    [4, 4],
-    [3, 5],
-    [1, 6], [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "オ": [
-    [4, 0],
-    [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1],
-    [4, 2],
-    [3, 3], [4, 3],
-    [2, 4], [4, 4],
-    [0, 5], [1, 5], [4, 5],
-    [3, 6], [4, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "タ": [
-    [2, 0],
-    [2, 1], [3, 1], [4, 1], [5, 1],
-    [1, 2], [5, 2],
-    [0, 3], [2, 3], [4, 3], [6, 3],
-    [4, 4],
-    [3, 5],
-    [1, 6], [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ン": [
-    [1, 0],
-    [2, 1],
-    [6, 2],
-    [6, 3],
-    [5, 4],
-    [4, 5],
-    [1, 6], [2, 6], [3, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ョ": [
-    [1, 2], [2, 2], [3, 2], [4, 2],
-    [4, 3],
-    [2, 4], [3, 4], [4, 4],
-    [4, 5],
-    [1, 6], [2, 6], [3, 6], [4, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ウ": [
-    [2, 0],
-    [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1],
-    [0, 2], [5, 2],
-    [5, 3],
-    [4, 4],
-    [3, 5],
-    [1, 6], [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ビ": [
-    [0, 0], [3, 0], [5, 0], [7, 0],
-    [0, 1],
-    [0, 2], [3, 2], [4, 2],
-    [0, 3], [1, 3], [2, 3], [3, 3],
-    [0, 4],
-    [0, 5],
-    [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "メ": [
-    [5, 0],
-    [5, 1],
-    [1, 2], [2, 2], [3, 2], [5, 2],
-    [4, 3],
-    [3, 4], [5, 4],
-    [2, 5], [5, 5],
-    [0, 6], [1, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "デ": [
-    [1, 0], [2, 0], [3, 0], [4, 0], [6, 0],
-    [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2],
-    [3, 3],
-    [3, 4],
-    [3, 5],
-    [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-
-  "ト": [
-    [2, 0],
-    [2, 1],
-    [2, 2],
-    [2, 3], [3, 3], [4, 3],
-    [2, 4], [4, 4],
-    [2, 5],
-    [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "チ": [
-    [4, 0], [5, 0],
-    [1, 1], [2, 1], [3, 1],
-    [3, 2],
-    [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3],
-    [3, 4],
-    [3, 5],
-    [2, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ャ": [
-    [2, 2],
-    [2, 3], [3, 3], [4, 3], [5, 3],
-    [2, 4], [5, 4],
-    [2, 5], [5, 5],
-    [3, 6], [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "セ": [
-    [2, 0],
-    [2, 1],
-    [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2],
-    [2, 3], [6, 3],
-    [2, 4], [5, 4],
-    [2, 5],
-    [3, 6], [4, 6], [5, 6], [6, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "イ": [
-    [5, 0],
-    [4, 1],
-    [3, 2],
-    [2, 3], [3, 3],
-    [0, 4], [1, 4], [3, 4],
-    [3, 5],
-    [3, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "2": [
-    [1, 0], [2, 0], [3, 0], [4, 0], [5, 0],
-    [0, 1], [6, 1],
-    [6, 2],
-    [3, 3], [4, 3],
-    [1, 4], [2, 4],
-    [0, 5],
-    [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "0": [
-    [1, 0], [2, 0], [3, 0], [4, 0], [5, 0],
-    [0, 1], [6, 1],
-    [0, 2], [4, 2], [5, 2],
-    [0, 3], [1, 3], [4, 3], [5, 3],
-    [0, 4], [1, 4], [6, 4],
-    [0, 5], [6, 5],
-    [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "5": [
-    [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0],
-    [0, 1],
-    [0, 2], [1, 2], [2, 2], [3, 2], [4, 2],
-    [0, 3], [5, 3],
-    [5, 4],
-    [0, 5], [5, 5],
-    [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ポ": [
-    [3, 0], [5, 0],
-    [3, 1], [4, 1], [6, 1],
-    [0, 2], [1, 2], [2, 2], [3, 2], [5, 2],
-    [3, 3],
-    [1, 4], [3, 4], [5, 4],
-    [0, 5], [3, 5], [6, 5],
-    [2, 6], [3, 6],
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ス": [
-    [1, 1], [2, 1], [3, 1], [4, 1], [5, 1],
-    [5, 2],
-    [4, 3],
-    [4, 4],
-    [2, 5], [3, 5], [5, 5],
-    [0, 6], [1, 6], [6, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ー": [
-    [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ハ": [
-    [2, 1], [4, 1],
-    [2, 2], [5, 2],
-    [2, 3], [5, 3],
-    [1, 4], [6, 4],
-    [1, 5], [6, 5],
-    [0, 6], [6, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ュ": [
-    [2, 3], [3, 3], [4, 3],
-    [4, 4],
-    [4, 5],
-    [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "シ": [
-    [1, 0], [6, 0],
-    [2, 1], [6, 1],
-    [1, 2], [6, 2],
-    [2, 3], [6, 3],
-    [5, 4],
-    [4, 5],
-    [1, 6], [2, 6], [3, 6],
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ブ": [
-    [3, 0], [5, 0],
-    [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1],
-    [5, 2],
-    [5, 3],
-    [4, 4],
-    [3, 5],
-    [1, 6], [2, 6],
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ヤ": [
-    [2, 0],
-    [2, 1], [4, 1], [5, 1], [6, 1],
-    [0, 2], [1, 2], [2, 2], [3, 2], [6, 2],
-    [2, 3], [5, 3],
-    [3, 4],
-    [3, 5],
-    [3, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "エ": [
-    [1, 1], [2, 1], [3, 1], [4, 1], [5, 1],
-    [3, 2],
-    [3, 3],
-    [3, 4],
-    [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "コ": [
-    [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1],
-    [5, 2],
-    [5, 3],
-    [5, 4],
-    [5, 5],
-    [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]
-  ].map(([x, y]) => [x * 30, y * 30]),
-  "ナ": [
-    [3, 0],
-    [3, 1],
-    [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2],
-    [3, 3],
-    [3, 4],
-    [2, 5],
-    [1, 6],
-  ].map(([x, y]) => [x * 30, y * 30]),
-};
-
-// ========= 出す順番（単語リスト） =========
-let katakanaWords = [
-  ["フ", "ジ", "サ", "キ", "ミ", "ク"],
-  ["タ", "ン", "ジ", "ョ", "ウ", "ビ"],
-  ["オ", "メ", "デ", "ト", "ウ"]
-];
-
-class FlipPipeline extends Phaser.Renderer.WebGL.Pipelines.SinglePipeline {
-  constructor(game) {
-    super({
-      game,
-      fragShader: `
-      precision mediump float;
-      uniform sampler2D uMainSampler;
-      uniform float uRotation;
-      varying vec2 outTexCoord;
-      void main() {
-        vec2 uv = outTexCoord - 0.5;
-        float a = uRotation; // expecting radians
-        float ca = cos(a);
-        float sa = sin(a);
-        float rx = uv.x * ca;
-        float depth = abs(uv.x * sa);
-        float perspective = 1.0 / (1.0 + 0.5 * depth);
-        vec2 mapped = vec2(rx, uv.y) * perspective + 0.5;
-        if (mapped.x < 0.0 || mapped.x > 1.0 || mapped.y < 0.0 || mapped.y > 1.0) {
-          gl_FragColor = vec4(0.0,0.0,0.0,0.0);
-          return;
-        }
-        vec4 color = texture2D(uMainSampler, mapped);
-        float shading = 0.5 + 0.5 * ca;
-        color.rgb *= mix(0.6, 1.0, shading);
-        gl_FragColor = color;
-      }
-      `,
-      uniforms: ['uProjectionMatrix', 'uMainSampler', 'uRotation']
-    });
-    // pipeline 用プロパティ（任意）
-    this.rotation = 0;
-  }
-
-  onPreRender() {
-    // Phaser のバージョンに合わせて set1f を使用する例（安定）
-    if (typeof this.set1f === 'function') {
-      this.set1f('uRotation', this.rotation || 0);
-    } else if (typeof this.setFloat1 === 'function') {
-      this.setFloat1('uRotation', this.rotation || 0);
-    }
-  }
-}
-
-
-function create() {
-
-  // 効果音を変数に保持（後で呼び出しやすくする）
-  this.se_item = this.sound.add('se_item');
-  this.se_star = this.sound.add('se_star');
-  this.se_bomb = this.sound.add('se_bomb');
-  this.se_gameover = this.sound.add('se_gameover');
-  this.se_clear = this.sound.add('se_clear');
-  this.se_jump = this.sound.add('se_jump');
-
-
-
-  gameScene = this;
-  gameScene.physics.resume();
-
-  // ★追加★ ここで変数を初期化
-  lives = 3;
-  score = 0;
-  gameOver = false;
-  gameClear = false;
-  gameTime = 0;
-  setDifficulty(difficulty);
-
-
-
-  gameOverScreen = document.getElementById('game-over-screen');
-  gameClearScreen = document.getElementById('game-clear-screen');
-
-  const bg1 = this.add.image(0, 0, "bg01").setOrigin(0, 0).setAlpha(0);
-  const bg2 = this.add.image(0, 0, "bg02").setOrigin(0, 0).setAlpha(0);
-  const bg3 = this.add.image(0, 0, "bg03").setOrigin(0, 0).setAlpha(0);
-  backgrounds = [bg1, bg2, bg3];
-
-
-  const s_bg1 = this.add.image(0, 0, "s_bg01").setOrigin(0, 0).setAlpha(0);
-  const s_bg2 = this.add.image(0, 0, "s_bg02").setOrigin(0, 0).setAlpha(0);
-  const s_bg3 = this.add.image(0, 0, "s_bg03").setOrigin(0, 0).setAlpha(0);
-  const s_bg4 = this.add.image(0, 0, "s_bg04").setOrigin(0, 0).setAlpha(0);
-  const s_bg5 = this.add.image(0, 0, "s_bg05").setOrigin(0, 0).setAlpha(0);
-  const s_bg6 = this.add.image(0, 0, "s_bg06").setOrigin(0, 0).setAlpha(0);
-  const s_bg7 = this.add.image(0, 0, "s_bg07").setOrigin(0, 0).setAlpha(0);
-  const s_bg8 = this.add.image(0, 0, "s_bg08").setOrigin(0, 0).setAlpha(0);
-  const s_bg9 = this.add.image(0, 0, "s_bg09").setOrigin(0, 0).setAlpha(0);
-  const s_hint01 = this.add.image(0, 0, "s_hint01").setOrigin(0, 0).setAlpha(0);
-  const s_hint02 = this.add.image(0, 0, "s_hint02").setOrigin(0, 0).setAlpha(0);
-  const s_hint03 = this.add.image(0, 0, "s_hint03").setOrigin(0, 0).setAlpha(0);
-  backgrounds_str = [s_hint01, s_hint02 ,s_hint03, s_bg1, s_bg2, s_bg3, s_bg4, s_bg5, s_bg6, s_bg7, s_bg8, s_bg9];
-
-  // create() の先頭付近に入れる（FlipPipeline クラス定義の後）
-  const renderer = (this.game && this.game.renderer) ? this.game.renderer : this.renderer;
-
-
-  if (renderer && typeof renderer.addPipeline === 'function') {
-    // WebGL renderer で addPipeline が使える場合
-    try {
-      this.flipPipeline = this.renderer.pipelines.add(
-        'flipPipeline',
-        new FlipPipeline(this.game)
-      );
-      console.log('Flip pipeline registered (pipelines.add):', !!this.flipPipeline);
-    } catch (e) {
-      console.warn('Pipeline unavailable, falling back to scaleX flip:', e);
-      this.flipPipeline = null;
-    }
-  } else {
-    // Pipeline API が無い -> Canvas renderer の可能性または環境依存
-    console.warn('addPipeline not available. Renderer:', renderer);
-    console.warn('Pipeline (WebGL) is unavailable — falling back to scaleX flip.');
-  }
-
-
-
-
-  // ★初期化処理：リスタートでも最初の背景に戻す
-  activeBgIndex = 0;
-  backgrounds.forEach((bg, i) => bg.setAlpha(i === 0 ? 1 : 0));
-
-  // アニメーションを一度だけ作成
-  setupAnimations(this);
-
-  // player 生成
-  player = this.physics.add.sprite(100, 100, "ham");
-  player.setBounce(0.2);
-  player.setDepth(10);
-  player.setCollideWorldBounds(true);
-
-  const emptyHearts = this.add.group({
-    key: 'heart_empty',
-    repeat: lives - 1,
-    setXY: { x: 20, y: 20, stepX: 35 }
-  });
-
-  hearts = this.add.group({
-    key: 'heart',
-    repeat: lives - 1,
-    setXY: { x: 20, y: 20, stepX: 35 }
-  });
-
-  const ground = this.physics.add.staticGroup();
-  ground.create(240, 639, "ground").setScale(2).refreshBody();
-
-  cursors = this.input.keyboard.createCursorKeys();
-
-  wasd = this.input.keyboard.addKeys({
-    up: Phaser.Input.Keyboard.KeyCodes.W,
-    left: Phaser.Input.Keyboard.KeyCodes.A,
-    down: Phaser.Input.Keyboard.KeyCodes.S,
-    right: Phaser.Input.Keyboard.KeyCodes.D
-  });
-
-  this.physics.add.collider(player, ground);
-
-  normalItems = this.physics.add.group();
-  eventItems = this.physics.add.group();
-
-  // normalItems と地面の衝突判定
-  this.physics.add.overlap(normalItems, ground, destroyItem, null, this);
-  // eventItems と地面の衝突判定
-  this.physics.add.overlap(eventItems, ground, destroyItem, null, this);
-
-  this.physics.add.overlap(player, normalItems, collectItem, null, this);
-  this.physics.add.overlap(player, eventItems, collectEventItem, null, this);
-
-
-  this.time.addEvent({
-    delay: 10000,
-    callback: () => {
-      const currentBg = backgrounds[activeBgIndex];
-      const nextBgIndex = (activeBgIndex + 1) % backgrounds.length;
-      const nextBg = backgrounds[nextBgIndex];
-
-      this.tweens.add({
-        targets: nextBg,
-        alpha: 1,
-        duration: 2000,
-      });
-
-      this.tweens.add({
-        targets: currentBg,
-        alpha: 0,
-        duration: 2000,
-      });
-
-      activeBgIndex = nextBgIndex;
-    },
-    loop: true
-  });
-
-  startSpawnTimer(this);
-
-  this.input.once('pointerdown', () => {
-    this.sound.context.resume();
-  });
-
-  setupMobileControls();
-
-  // 特殊イベント用初期化
-  maxCols = Math.floor(config.width / cellSize);
-  katBgQueue = [];
-  startSpecialEventLoop(this);
-
-  if (!gameStarted) {
-    this.physics.pause();
-  }
-}
-
-
-
-// ===== 難易度設定用パラメータ =====
-let difficulty = "normal";  // "easy", "normal", "hard" など切替予定
-let speedBase = 100;        // 初期スピード
-let speedIncrease = 20;     // 上昇幅
-let speedInterval = 10000;  // 上昇間隔（ms）
-
-// 難易度ごとにパラメータを調整
-function setDifficulty(level) {
-  difficulty = level;
-  if (level === "easy") {
-    speedBase = 80;
-    speedIncrease = 15;
-    speedInterval = 12000;
-  } else if (level === "normal") {
-    speedBase = 100;
-    speedIncrease = 20;
-    speedInterval = 10000;
-  } else if (level === "hard") {
-    speedBase = 120;
-    speedIncrease = 25;
-    speedInterval = 8000;
-  }
-}
-
-// ===== 無敵関連 =====
-let isInvincible = false;
-let invincibleTimer = null;
-let blinkFrame = 0;
-
-
-function setupAnimations(scene) {
-  if (!scene.anims.exists("left")) {
-    scene.anims.create({
-      key: "left",
-      frames: scene.anims.generateFrameNumbers("ham", { start: 0, end: 3 }),
-      frameRate: 10,
-      repeat: -1
-    });
-  }
-
-  if (!scene.anims.exists("turn")) {
-    scene.anims.create({
-      key: "turn",
-      frames: [{ key: "ham", frame: 4 }],
-      frameRate: 20
-    });
-  }
-
-  if (!scene.anims.exists("right")) {
-    scene.anims.create({
-      key: "right",
-      frames: scene.anims.generateFrameNumbers("ham", { start: 5, end: 8 }),
-      frameRate: 10,
-      repeat: -1
-    });
-  }
-}
-
-// ---------- ヘルパー：全てのイベントタイマーをクリア ----------
-function clearAllEventTimers(scene) {
-  // Phaser の TimerEvent をキャンセル
-  eventTimers.forEach(t => {
-    try { t.remove(false); } catch (e) { /* ignore */ }
-  });
-  eventTimers = [];
-}
-
-// ---------- 特殊列（イベント①／②）を生成（Phaser 用） ----------
-function spawnPatternRowPhaser(scene) {
-  // 横に爆弾を並べる。穴はランダムに 3 マス分開ける（プレイヤーがすり抜ける幅）
-  const cols = maxCols || Math.floor(config.width / cellSize);
-  const hole = Phaser.Math.Between(0, Math.max(0, cols - 3)); // hole は 0..cols-3
-  const startX = (config.width - cols * cellSize) / 2; // 中央寄せ
-  // 速度は現在の経過時間に基づく
-  const levelUp = Math.floor(gameTime / speedInterval);
-  const currentSpeed = speedBase + levelUp * speedIncrease;
-
-  for (let i = 0; i < cols; i++) {
-    // hole..hole+2 が空く
-    if (i >= hole && i <= hole + 2) continue;
-    const x = startX + i * cellSize + cellSize / 2;
-    const bomb = eventItems.create(x, -40, 'bomb'); // ★ eventItems を使用
-    bomb.setDepth(5);
-    bomb.body.allowGravity = false;
-    // 元コードに合わせて originalSpeed を持たせる
-    bomb.originalSpeed = currentSpeed;
-    bomb.setVelocityY(currentSpeed);
-  }
-}
-
-// ---------- イベント③：カタカナ文字を 1 文字ずつ落とすロジック ----------
-function computeKatakanaIntervalMs() {
-  // 現在の落下スピード（spawnItem と同じ計算）
-  const levelUp = Math.floor(gameTime / speedInterval);
-  const currentSpeed = speedBase + levelUp * speedIncrease;
-  // currentSpeed が速ければ文字の間隔は短くして相対感を維持
-  const baseMs = 1000; // 基準（チューニング可）
-  const ms = Math.max(200, Math.round(baseMs * (speedBase / currentSpeed)));
-  return ms;
-}
-
-function spawnKatakanaPhaser(scene, char, isLastChar = false) {
-  // katakanaPatterns は参照JS側の定義を使う想定
-  const pattern = (typeof katakanaPatterns !== 'undefined' && katakanaPatterns[char]) ? katakanaPatterns[char] : null;
-  if (!pattern) {
-    console.warn('no pattern for', char);
-    return;
-  }
-
-  const centerX = config.width / 2;
-  // pattern は参照JSで [dx, dy] に変換済み（もし未変換なら適宜変換）
-  pattern.forEach(([dx, dy]) => {
-    const x = centerX - (3 * cellSize) + dx + cellSize / 2; // 中央寄せ（7x7想定）
-    const y = dy - 200; // 表示開始位置（上の方から落とす）
-    const star = eventItems.create(x, y, 'star'); // ★ eventItems を使用
-    star.body.allowGravity = false;
-    // 落下速度は通常アイテムと同じ計算
-    const levelUp = Math.floor(gameTime / speedInterval);
-    const currentSpeed = speedBase + levelUp * speedIncrease;
-    star.originalSpeed = currentSpeed;
-    star.setVelocityY(currentSpeed);
-  });
-}
-
-
-
-function showKatakanaBackground(scene) {
-  if (!backgrounds_str || backgrounds_str.length === 0) return;
-
-  // === キューが空なら初期化 ===
-  if (katBgQueue.length === 0) {
-    const d = difficulty || 'normal';
-    const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined
-      ? katBgFirstIndexByDifficulty[d]
-      : 0;
-
-    // ヒント背景は固定で最初に出す
-    // 以降は「ヒント背景を除外」してシャッフル
-    const otherIndices = backgrounds_str.map((_, i) => i).filter(i => i !== fixedIndex);
-    Phaser.Utils.Array.Shuffle(otherIndices);
-
-    katBgQueue = [fixedIndex].concat(otherIndices);
-  }
-
-  // === 次に使う背景を取得 ===
-  let imgKeyIndex = katBgQueue.shift();
-
-  // === キューが空になったら再構築（連続同一防止あり） ===
-  if (katBgQueue.length === 0) {
-    // fixedIndex はもう含めない！
-    const d = difficulty || 'normal';
-    const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined
-      ? katBgFirstIndexByDifficulty[d]
-      : 0;
-
-    const allIndices = backgrounds_str.map((_, i) => i).filter(i => i !== fixedIndex);
-    Phaser.Utils.Array.Shuffle(allIndices);
-
-    // 直前と同じが先頭に来ないよう調整
-    if (allIndices[0] === imgKeyIndex && allIndices.length > 1) {
-      [allIndices[0], allIndices[1]] = [allIndices[1], allIndices[0]];
-    }
-
-    katBgQueue = allIndices;
-  }
-
-  // === 実際の sprite ===
-  const targetSprite = backgrounds_str[imgKeyIndex];
-
-  // 背景を登場させる
-  flipInBackground(scene, targetSprite, targetSprite.texture.key);
-
-  return targetSprite;
-}
-
-
-
-// === 背景登場 ===
-function flipInBackground(scene, bgSprite, newTextureKey, duration = 700) {
-  bgSprite.setOrigin(0.5, 0.5);
-  bgSprite.setPosition(scene.scale.width / 2, scene.scale.height / 2);
-  bgSprite.displayWidth = scene.scale.width;
-  bgSprite.displayHeight = scene.scale.height;
-  bgSprite.setVisible(true);
-
-    // 重要：表示できるように alpha と visible を確実に設定
-  bgSprite.setAlpha(1);
-  bgSprite.setVisible(true);
-
-
-  if (scene.flipPipeline) {
-    bgSprite.setPipeline(scene.flipPipeline);
-    scene.flipPipeline.rotation = 0;
-    if (typeof scene.flipPipeline.set1f === 'function') {
-      scene.flipPipeline.set1f('uRotation', 0);
-    }
-
-    let swapped = false;
-    scene.tweens.addCounter({
-      from: 0,
-      to: Math.PI,
-      duration: duration,
-      ease: 'Cubic.easeInOut',
-      onUpdate: (tween) => {
-        const val = tween.getValue();
-        if (typeof scene.flipPipeline.set1f === 'function') {
-          scene.flipPipeline.set1f('uRotation', val);
-        } else {
-          scene.flipPipeline.rotation = val;
-        }
-        if (!swapped && val >= Math.PI / 2) {
-          swapped = true;
-          bgSprite.setTexture(newTextureKey);
-        }
-      }
-      // onComplete では pipeline をリセットせず保持
-    });
-  } else {
-    // フォールバック
-    bgSprite.setScale(0, 1);
-    bgSprite.setTexture(newTextureKey);
-    scene.tweens.add({
-      targets: bgSprite,
-      scaleX: 1,
-      duration: duration,
-      ease: 'Cubic.easeOut'
-    });
-  }
-}
-
-
-// === 背景退場 ===
-function flipOutBackground(scene, bgSprite, duration = 700) {
-  if (scene.flipPipeline) {
-    scene.flipPipeline.rotation = 0;
-    if (typeof scene.flipPipeline.set1f === 'function') {
-      scene.flipPipeline.set1f('uRotation', 0);
-    }
-
-    scene.tweens.addCounter({
-      from: 0,
-      to: Math.PI,
-      duration: duration,
-      ease: 'Cubic.easeInOut',
-      onUpdate: (tween) => {
-        const val = tween.getValue();
-        if (typeof scene.flipPipeline.set1f === 'function') {
-          scene.flipPipeline.set1f('uRotation', val);
-        } else {
-          scene.flipPipeline.rotation = val;
-        }
-      },
-      onComplete: () => {
-        bgSprite.setVisible(false);
-        try { bgSprite.resetPipeline(); } catch (e) {}
-      }
-    });
-  } else {
-    scene.tweens.add({
-      targets: bgSprite,
-      scaleX: 0,
-      duration: duration,
-      ease: 'Cubic.easeIn',
-      onComplete: () => {
-        bgSprite.setVisible(false);
-      }
-    });
-  }
-}
-
-
-// ---------- メイン：特殊イベントの流れ制御 ----------
-function startSpecialEventLoop(scene) {
-  clearAllEventTimers(scene);
-  specialCycleCount = 0;
-  // 初回はゲーム開始から 40 秒後に開始
-  const t = scene.time.delayedCall(40000, () => {
-    runSpecialCycle(scene);
-  }, [], scene);
-  eventTimers.push(t);
-}
-
-function runSpecialCycle(scene) {
-  specialCycleCount++;
-  // フェーズ1（横一列）を開始
-  spawnPatternRowPhaser(scene);
-
-  // フェーズ2 は「横一列終了から 20 秒後」で、3 回連続（5 秒間隔）
-  const t2 = scene.time.delayedCall(20000, () => {
-    // 5 秒ごとに 3 回 spawnPatternRowPhaser
-    const int = scene.time.addEvent({
-      delay: 5000,
-      callback: () => spawnPatternRowPhaser(scene),
-      repeat: 2 // 合計 3 回
-    });
-    eventTimers.push(int);
-    // 終了後にフェーズ3 を 20秒待って開始（元仕様に合わせる）
-    const t3 = scene.time.delayedCall(20000 + 5000 * 2, () => {
-      inKatakanaEvent = true; // ★修正：カタカナイベントの開始
-      startKatakanaPhase(scene);
-    }, [], scene);
-    eventTimers.push(t3);
-  }, [], scene);
-  eventTimers.push(t2);
-}
-
-function startKatakanaPhase(scene) {
-  const d = difficulty || 'normal';
-  const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined
-    ? katBgFirstIndexByDifficulty[d]
-    : 0;
-  const targetSprite = backgrounds_str[fixedIndex];
-  targetSprite.setVisible(true);
-
-  flipInBackground(scene, targetSprite, targetSprite.texture.key);
-
-  console.log("Katakana Phase Started!");
-  inKatakanaEvent = true; // ★追加：カタカナイベント開始時にフラグを立てる
-  // checkAndSpawn 停止は inKatakanaEvent を参照している前提
-  // 背景切替（最初の背景は難易度固定）
-
-  // 出すカタカナ単語は、specialCycleCount に応じて変えたい（2回目は指定順）
-  // 既存の katakanaWords が配列 of arrays で定義されている想定
-  let wordsList = katakanaWords; // 参照JSで定義済み
-  // もし 2 回目のループで「順番を変える」など仕様があるならここで並び替え
-  if (specialCycleCount >= 2 && typeof katakanaWordsSecondLoopOrder !== 'undefined') {
-    // ユーザー指定の順序配列がある場合使う
-    wordsList = katakanaWordsSecondLoopOrder;
-  }
-
-  // ここでは単語リストから順に 1 単語（複数文字）を取り、その文字を逐次落とす
-  const word = wordsList[katakanaPatternIndex % wordsList.length];
-  katakanaPatternIndex = (katakanaPatternIndex + 1) % wordsList.length;
-
-  let charIndex = 0;
-  const spawnNextChar = () => {
-    if (!gameScene || gameOver) {
-      // ゲームが終了してたら中断
-      inKatakanaEvent = false;
-      return;
-    }
-    if (charIndex < word.length) {
-      const ch = word[charIndex];
-      spawnKatakanaPhaser(scene, ch);
-
-      // ★ ポーリングで監視：前の文字が消えたら次へ
-      const checker = scene.time.addEvent({
-        delay: 500, // 0.5秒ごとに確認
-        callback: () => {
-          // activeな eventItems が残っているか？
-          if (eventItems.countActive(true) === 0) {
-            checker.remove(); // 監視を止める
-            charIndex++;
-            spawnNextChar(); // 次の文字へ
-          }
+// Phaser移植版 - 元の ham.js と同等の挙動を再現します
+// Phaser単体移植版：ham.js の挙動をできるだけ忠実に再現します
+(function () {
+    // ====== 画像/音声パス ======
+    const IMG_PATHS = {
+        player: 'asset/images/player.png',
+        candy: 'asset/images/candy.png',
+        donut: 'asset/images/donut.png',
+        bomb: 'asset/images/bomb.png',
+        heart: 'asset/images/heart.png',
+        heartEmpty: 'asset/images/heart_empty.png',
+        star: 'asset/images/star.png'
+    };
+
+    const SOUND_PATHS = {
+        jump: 'asset/sounds/jump.mp3',
+        damage: 'asset/sounds/damage.mp3',
+        item: 'asset/sounds/item.mp3',
+        heart: 'asset/sounds/heart.mp3',
+        gameover: 'asset/sounds/gameover.mp3',
+        clear: 'asset/sounds/clear.mp3',
+        bgm: 'asset/sounds/bgm.mp3',
+        star: 'asset/sounds/star.mp3'
+    };
+
+    // ====== DOM 要素 ======
+    const difficultyDisplay = document.getElementById('difficultyDisplay');
+    const heartsDiv = document.getElementById('hearts');
+    const scoreDiv = document.getElementById('score');
+
+    // ====== カタカナパターン（ham.js から移植） ======
+    const katakanaPatterns = {
+        "フ": [[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[5,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "ジ": [[0,0],[2,0],[4,0],[6,0],[1,1],[0,2],[4,2],[1,3],[5,3],[4,4],[3,5],[0,6],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "サ": [[2,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[2,2],[4,2],[2,3],[4,3],[5,4],[4,5],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
+        "キ": [[3,0],[1,1],[2,1],[3,1],[4,1],[5,1],[3,2],[3,3],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[3,5],[3,6]].map(([x,y])=>[x*30,y*30]),
+        "ミ": [[1,0],[2,0],[3,0],[4,1],[5,1],[2,2],[3,3],[4,3],[1,5],[2,5],[3,5],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "ク": [[2,0],[2,1],[3,1],[4,1],[5,1],[1,2],[5,2],[0,3],[6,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "オ": [[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[4,2],[3,3],[4,3],[2,4],[4,4],[0,5],[1,5],[4,5],[3,6],[4,6]].map(([x,y])=>[x*30,y*30]),
+        "タ": [[2,0],[2,1],[3,1],[4,1],[5,1],[1,2],[5,2],[0,3],[2,3],[4,3],[6,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "ン": [[1,0],[2,1],[6,2],[6,3],[5,4],[4,5],[1,6],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
+        "ョ": [[1,2],[2,2],[3,2],[4,2],[4,3],[2,4],[3,4],[4,4],[4,5],[1,6],[2,6],[3,6],[4,6]].map(([x,y])=>[x*30,y*30]),
+        "ウ": [[2,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[0,2],[5,2],[5,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "ビ": [[0,0],[3,0],[5,0],[7,0],[0,1],[0,2],[3,2],[4,2],[0,3],[1,3],[2,3],[3,3],[0,4],[0,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "メ": [[5,0],[5,1],[1,2],[2,2],[3,2],[5,2],[4,3],[3,4],[5,4],[2,5],[5,5],[0,6],[1,6]].map(([x,y])=>[x*30,y*30]),
+        "デ": [[1,0],[2,0],[3,0],[4,0],[6,0],[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[3,3],[3,4],[3,5],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "ト": [[2,0],[2,1],[2,2],[2,3],[3,3],[4,3],[2,4],[4,4],[2,5],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "チ": [[4,0],[5,0],[1,1],[2,1],[3,1],[3,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[3,4],[3,5],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "ャ": [[2,2],[2,3],[3,3],[4,3],[5,3],[2,4],[5,4],[2,5],[5,5],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "セ": [[2,0],[2,1],[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[2,3],[6,3],[2,4],[5,4],[2,5],[3,6],[4,6],[5,6],[6,6]].map(([x,y])=>[x*30,y*30]),
+        "イ": [[5,0],[4,1],[3,2],[2,3],[3,3],[0,4],[1,4],[3,4],[3,5],[3,6]].map(([x,y])=>[x*30,y*30]),
+        "2": [[1,0],[2,0],[3,0],[4,0],[5,0],[0,1],[6,1],[6,2],[3,3],[4,3],[1,4],[2,4],[0,5],[0,6],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "0": [[1,0],[2,0],[3,0],[4,0],[5,0],[0,1],[6,1],[0,2],[4,2],[5,2],[0,3],[1,3],[4,3],[5,3],[0,4],[1,4],[6,4],[0,5],[6,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "5": [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[0,1],[0,2],[1,2],[2,2],[3,2],[4,2],[0,3],[5,3],[5,4],[0,5],[5,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "ポ": [[3,0],[5,0],[3,1],[4,1],[6,1],[0,2],[1,2],[2,2],[3,2],[5,2],[3,3],[1,4],[3,4],[5,4],[0,5],[3,5],[6,5],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
+        "ス": [[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[4,3],[4,4],[2,5],[3,5],[5,5],[0,6],[1,6],[6,6]].map(([x,y])=>[x*30,y*30]),
+        "ー": [[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3]].map(([x,y])=>[x*30,y*30]),
+        "ハ": [[2,1],[4,1],[2,2],[5,2],[2,3],[5,3],[1,4],[6,4],[1,5],[6,5],[0,6],[6,6]].map(([x,y])=>[x*30,y*30]),
+        "ュ": [[2,3],[3,3],[4,3],[4,4],[4,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "シ": [[1,0],[6,0],[2,1],[6,1],[1,2],[6,2],[2,3],[6,3],[5,4],[4,5],[1,6],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
+        "ブ": [[3,0],[5,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[5,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
+        "ヤ": [[2,0],[2,1],[4,1],[5,1],[6,1],[0,2],[1,2],[2,2],[3,2],[6,2],[2,3],[5,3],[3,4],[3,5],[3,6]].map(([x,y])=>[x*30,y*30]),
+        "エ": [[1,1],[2,1],[3,1],[4,1],[5,1],[3,2],[3,3],[3,4],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5]].map(([x,y])=>[x*30,y*30]),
+        "コ": [[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[5,3],[5,4],[5,5],[0,6],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
+        "ナ": [[3,0],[3,1],[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[3,3],[3,4],[2,5],[1,6]].map(([x,y])=>[x*30,y*30])
+    };
+
+    // ====== 単語リスト（ham.js からコピー） ======
+    let katakanaWords = [
+        ["フ","ジ","サ","キ","ミ","ク"],
+        ["タ","ン","ジ","ョ","ウ","ビ"],
+        ["オ","メ","デ","ト","ウ"]
+    ];
+
+    // ====== 難易度設定（ham.js と同一） ======
+    const difficultySettings = {
+        1: {
+            minSpeed: 5, maxSpeed: 9, speedInterval: 20,
+            dropIntervalBase: 400, dropIntervalReduction: 200,
+            bgFirst: 'asset/images/hint_bg.png',
+            bgImages: ['asset/images/bg01.png','asset/images/bg02.png','asset/images/bg03.png'],
+            bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
+            katakanaWords: [
+                ["フ","ジ","サ","キ","ミ","ク"],
+                ["セ","イ","タ","ン","サ","イ"],
+                ["2","0","2","5"],
+                ["ミ","ク","チ","ャ","ン"],
+                ["オ","タ","ン","ジ","ョ","ウ","ビ"],
+                ["オ","メ","デ","ト","ウ"]
+            ]
         },
-        loop: true
-      });
-      eventTimers.push(checker);
-    } else {
-      // すべての文字を出し終えた → 全て落ちて壊れるまで表示させたいので、
-      // 安全側で「十分な待ち時間」を置いてから終了処理に入る（文字数や速度で変わるため余裕を持たせる）
-      const waitMs = 3000; // 実機で調整してください（文字が落ち切る目安）
-      const endT = scene.time.delayedCall(waitMs, () => {
-        inKatakanaEvent = false; // ★修正：カタカナイベントも終了
-        flipOutBackground(scene, targetSprite)
-        backgrounds_str.forEach((bg) => {
-          scene.tweens.add({
-            targets: bg,
-            alpha: 0,
-            duration: 500,
-          });
-        });
-        backgrounds.forEach((bg, i) => bg.setAlpha(i === activeBgIndex ? 1 : 0));
-        // ここでは activeBgIndex を次の通常画面背景に戻す処理とする
-        //backgrounds.forEach((bg, i) => bg.setAlpha(i === activeBgIndex ? 1 : 0));
-        // イベント終了後、40秒後に再度イベントサイクルを始める（仕様どおり）
-        const nextCycleT = scene.time.delayedCall(40000, () => runSpecialCycle(scene), [], scene);
-        eventTimers.push(nextCycleT);
-      }, [], scene);
-      eventTimers.push(endT);
-    }
-  };
-
-  // まずは単語背景を表示してから最初の文字を出す（少し遅延を置く）
-  const startT = scene.time.delayedCall(250, spawnNextChar, [], scene);
-  eventTimers.push(startT);
-}
-
-function destroyItem(item) {
-  item.disableBody(true, true);
-}
-
-
-function checkAndSpawn() {
-
-  if (inKatakanaEvent) return; // ★このフラグで停止を制御
-
-  if (normalItems.countActive(true) < maxNormalItems) { // ★ normalItems をチェック
-    if (gameTime < 3000) {
-      if (normalItems.countActive(true) < 1) { // ★ normalItems をチェック
-        spawnItem.call(this);
-      }
-    } else {
-      spawnItem.call(this);
-    }
-  }
-}
-
-// アイテム生成を開始する関数
-function startSpawnTimer(scene) {
-  let baseDelay = 500; // 初期生成間隔(ms)
-
-  function scheduleNext() {
-    checkAndSpawn.call(scene);
-
-    // 経過時間に応じて生成間隔を短縮（最短200msまで）
-    const levelUp = Math.floor(gameTime / speedInterval);
-    const newDelay = Math.max(baseDelay - levelUp * 20, 200);
-
-    scene.time.addEvent({
-      delay: newDelay,
-      callback: scheduleNext,
-      callbackScope: scene
-    });
-  }
-
-  scheduleNext(); // 最初の呼び出し
-}
-
-
-function spawnItem(group = normalItems) { // ★ デフォルト引数を normalItems に変更
-  if (gameOver) return;
-
-  const itemKeys = ['donut', 'candy', 'bomb'];
-  const randomItemKey = Phaser.Utils.Array.GetRandom(itemKeys);
-  const x = Phaser.Math.Between(0, 480);
-  const item = group.create(x, 0, randomItemKey);
-  item.body.allowGravity = false;
-
-  // ★ 経過時間からスピード計算
-  const levelUp = Math.floor(gameTime / speedInterval);
-  const currentSpeed = speedBase + levelUp * speedIncrease;
-
-  // ★ 落下速度にランダム性を追加（例：±50%の幅）
-  const randomFactor = Phaser.Math.FloatBetween(0.1, 3.0);
-  const finalSpeed = currentSpeed * randomFactor;
-
-  item.setVelocityY(currentSpeed);
-  item.originalSpeed = currentSpeed;
-}
-
-function collectEventItem(player, item) {
-  item.disableBody(true, true);
-  // ★ ここに collectItem() からの爆弾処理を移動
-  if (item.texture.key === 'bomb') {
-    if (!isInvincible) {
-      this.se_bomb.play(); // ★ 爆弾音
-      if (lives > 0) {
-        lives--;
-        hearts.children.entries[lives].setActive(false).setVisible(false);
-      }
-
-      if (lives === 0 && !gameOver) {
-        this.physics.pause();
-        player.setTint(0xff0000);
-        player.anims.play('turn');
-        gameOver = true;
-        gameScreen.style.display = 'none';
-        gameOverScreen.style.display = 'flex';
-        document.getElementById('final-score-over').textContent = score;
-      } else {
-        isInvincible = true;
-        blinkFrame = 0;
-        if (invincibleTimer) clearTimeout(invincibleTimer);
-        invincibleTimer = setTimeout(() => {
-          isInvincible = false;
-          player.clearTint();
-        }, 3000);
-      }
-    }
-  } else {
-    // キャンディ・ドーナツ・星は普通に消す＆スコア加算
-    item.disableBody(true, true);
-    this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this)
-    if (item.texture.key === 'star') {
-      this.se_star.play(); // ★ 星専用音
-      score += 50000000; // ← 星は1000点！
-    }
-    document.getElementById("score").textContent = "SCORE: " + score;
-  }
-}
-
-function collectItem(player, item) {
-
-  // アイテムが爆弾かどうかをチェック
-  if (item.texture.key === 'bomb') {
-    // 爆弾の場合の処理
-    if (!isInvincible) { // 無敵状態でない場合のみダメージを受ける
-      item.disableBody(true, true); // ← 無敵でなければ消す
-      this.se_bomb.play(); // ★ 爆弾音
-      if (lives > 0) {
-        lives--;
-        hearts.children.entries[lives].setActive(false).setVisible(false);
-      }
-
-      if (lives === 0 && !gameOver) {
-        // ゲームオーバー処理
-        this.physics.pause();
-        player.setTint(0xff0000);
-        player.anims.play('turn');
-        gameOver = true;
-        gameScreen.style.display = 'none';
-        gameOverScreen.style.display = 'flex';
-        document.getElementById('final-score-over').textContent = score;
-        this.se_gameover.play(); // ★ ゲームオーバー音
-        // ★BGM停止ロジック: BGMがロードされ、かつ再生中であれば停止する
-        if (bgm && bgm.isPlaying) {
-          bgm.stop();
+        2: {
+            minSpeed: 4, maxSpeed: 8, speedInterval: 20,
+            dropIntervalBase: 600, dropIntervalReduction: 200,
+            bgFirst: 'asset/images/hint_bg02.png',
+            bgImages: ['asset/images/bg04.png','asset/images/bg05.png','asset/images/bg06.png'],
+            bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
+            katakanaWords: [
+                ["ミ","ク","チ","ャ","ン"],
+                ["オ","タ","ン","ジ","ョ","ウ","ビ"],
+                ["オ","メ","デ","ト","ウ"],
+                ["フ","ジ","サ","キ","ミ","ク"],
+                ["セ","イ","タ","ン","サ","イ"],
+                ["2","0","2","5"]
+            ]
+        },
+        3: {
+            minSpeed: 3, maxSpeed: 7, speedInterval: 20,
+            dropIntervalBase: 1000, dropIntervalReduction: 200,
+            bgFirst: 'asset/images/hint_bg03.png',
+            bgImages: ['asset/images/bg07.png','asset/images/bg08.png','asset/images/bg09.png'],
+            bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
+            katakanaWords: [
+                ["ポ","ス","タ","ー","ハ"],
+                ["ト","ウ","キ","ュ","ウ"],
+                ["シ","ブ","ヤ","エ","キ"],
+                ["コ","ウ","ナ","イ"]
+            ]
         }
-      } else {
-        // 無敵状態を開始
-        isInvincible = true;
-        blinkFrame = 0;
-        if (invincibleTimer) clearTimeout(invincibleTimer);
-        invincibleTimer = setTimeout(() => {
-          isInvincible = false;
-          player.clearTint();
-        }, 3000);
-      }
-      // 次のアイテムを出す処理は、爆弾を消した場合のみ呼ぶ
-      this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this);
+    };
+
+    // ====== Phaser 設定 ======
+    const config = {
+        type: Phaser.AUTO,
+        parent: 'phaser-container',
+        width: 480, height: 640,
+        transparent: true,
+        physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+        scene: { preload: preload, create: create, update: update }
+    };
+
+    const game = new Phaser.Game(config);
+
+    // ====== ゲーム状態 ======
+    let player = null;
+    let itemsGroup = null; // group for falling items
+    let itemPool = [];
+    let score = 0;
+    let lives = 3;
+    let currentDifficulty = 1;
+    let bgImageList = [];
+    let shuffledImages = [];
+    const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', ()=>{ stopAllSounds(); document.getElementById('gameOverScreen').style.display='none'; document.getElementById('startScreen').style.display='flex'; try{ document.getElementById('hearts').style.display='none'; }catch(e){} try{ document.getElementById('score').style.display='none'; }catch(e){} try{ document.getElementById('difficultyDisplay').style.display='none'; }catch(e){} });
+    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', ()=>{ stopAllSounds(); document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display='flex'; try{ document.getElementById('hearts').style.display='none'; }catch(e){} try{ document.getElementById('score').style.display='none'; }catch(e){} try{ document.getElementById('difficultyDisplay').style.display='none'; }catch(e){} });
+    let inKatakanaEvent = false;
+    let katakanaPatternIndex = 0;
+
+    // speed/time control
+    let minSpeed = 3, maxSpeed = 7, speedLevel = 3, speedInterval = 20;
+    let gameStartTime = Date.now();
+
+    // timers & events
+        const retryTop = document.getElementById('retryBtn_top_phaser');
+        if (retryTop) {
+            // create a safe handler that captures the current active scene at click-time and stops sounds
+            const handler = () => { const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null; stopAllSounds(s); if (s) startGame(s); };
+            try { const newNode = retryTop.cloneNode(true); retryTop.parentNode.replaceChild(newNode, retryTop); newNode.addEventListener('click', handler); }
+            catch(e) { retryTop.addEventListener('click', handler); }
+        }
+    let dropTimer = null;
+    let eventTimers = [];
+
+    // invincible
+    let isInvincible = false;
+    let invincibleTimer = null;
+    let blinkFrame = 0;
+    // sound mute state
+    let isMuted = false;
+
+    function preload() {
+        // images
+        for (const k in IMG_PATHS) this.load.image(k, IMG_PATHS[k]);
+        // sounds
+        for (const s in SOUND_PATHS) this.load.audio(s, SOUND_PATHS[s]);
     }
-  } else {
-    // キャンディ・ドーナツは普通に消す＆スコア加算
-    item.disableBody(true, true);
-    this.time.delayedCall(Phaser.Math.Between(300, 800), checkAndSpawn, [], this)
-    if (item.texture.key === 'candy') {
-      this.se_item.play(); // ★ 共通音
-      score += 3;
-    } else if (item.texture.key === 'donut') {
-      this.se_item.play(); // ★ 共通音
-      score += 9;
+
+    function create() {
+        const scene = this;
+
+        // create player as image with manual physics-like update
+    // set origin to top-left so x/y represent top-left corner (matches original ham.js coordinates)
+    player = scene.add.image(240, 580, 'player').setDisplaySize(42,50).setOrigin(0,0);
+    player.x = 240; player.y = 580; player.width = 42; player.height = 50; player.dy = 0; player.onGround = true;
+
+        // group for items (no arcade body necessary; we'll move manually)
+        itemsGroup = scene.add.group();
+
+        // pooling warmup
+        for (let i = 0; i < 30; i++) {
+            const img = scene.add.image(-1000, -1000, 'candy').setDisplaySize(30,30).setVisible(false).setOrigin(0,0);
+            itemPool.push(img);
+        }
+
+    // keyboard: create and store keys for consistent checks
+    scene._keys = scene.input.keyboard.addKeys('W,A,S,D,LEFT,RIGHT,UP,DOWN,SPACE');
+
+        // DOM buttons
+        const startBtnEl = document.getElementById('startBtn_phaser');
+        if (startBtnEl) startBtnEl.addEventListener('click', () => {
+            const modal = document.getElementById('difficultyModal_phaser'); modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+        });
+
+        document.querySelectorAll('.diffBtn_phaser').forEach(btn => btn.addEventListener('click', (e) => {
+            currentDifficulty = parseInt(e.target.dataset.level);
+            document.getElementById('difficultyModal_phaser').style.display = 'none';
+            startGame(scene);
+        }));
+    const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); startGame(scene); });
+        const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', ()=>{ document.getElementById('gameOverScreen').style.display='none'; document.getElementById('startScreen').style.display='flex'; });
+        const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', ()=>{ document.getElementById('clearScreen').style.display='none'; document.getElementById('startScreen').style.display='flex'; });
+
+        // touch controls
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const jumpBtn = document.getElementById('jumpBtn');
+        if (leftBtn) { leftBtn.addEventListener('pointerdown', ()=>{ scene._keys.LEFT.isDown = true; }); leftBtn.addEventListener('pointerup', ()=>{ scene._keys.LEFT.isDown = false; }); }
+        if (rightBtn) { rightBtn.addEventListener('pointerdown', ()=>{ scene._keys.RIGHT.isDown = true; }); rightBtn.addEventListener('pointerup', ()=>{ scene._keys.RIGHT.isDown = false; }); }
+        if (jumpBtn) jumpBtn.addEventListener('pointerdown', ()=>{ if (gameRunning()) playerJump(scene); });
+
+        // initial UI
+        updateHearts(); updateScore();
+        // bind sound toggle button
+        bindSoundToggle();
+        // hide sound toggle on initial (start) screen
+        try{ const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; }catch(e){}
     }
-    document.getElementById("score").textContent = "SCORE: " + score;
-  }
-}
 
-function update(time, delta) {
-  if (!gameStarted) return;
-  gameTime += delta;
+    // helper: is game running
+    function gameRunning() { return !!dropTimer; }
 
-  if (gameOver) {
-    return;
-  }
+    function update(time, delta) {
+        const scene = game.scene.scenes[0];
+        if (!scene) return;
+        if (!gameRunning()) return;
 
-  // === 無敵点滅処理 ===
-  if (isInvincible) {
-    blinkFrame++;
-    if (blinkFrame % 10 < 5) {
-      player.setVisible(false);
-    } else {
-      player.setVisible(true);
+        const keys = scene._keys;
+        // horizontal movement: scale by delta/30 to match ham.js per-tick motion
+        const deltaScale = delta / 30;
+        const movePerTick = 5; // pixels per ham.js tick
+        if ((keys.LEFT && keys.LEFT.isDown) || (keys.A && keys.A.isDown)) player.x = Math.max(0, player.x - movePerTick * deltaScale);
+        if ((keys.RIGHT && keys.RIGHT.isDown) || (keys.D && keys.D.isDown)) player.x = Math.min(480 - player.width, player.x + movePerTick * deltaScale);
+
+        // jump detection (single-press) — UP / W / SPACE
+        try {
+            if (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+                playerJump(scene);
+            }
+        } catch (e) {}
+
+        // gravity (units: dy is px per ham.js tick) — apply gravity scaled by delta
+        const gravity = 1;
+        player.dy += gravity * deltaScale;
+        player.y += player.dy * deltaScale;
+        if (player.y + player.height >= 640) { player.y = 640 - player.height; player.dy = 0; player.onGround = true; }
+
+        // invincible blinking
+        if (isInvincible) { blinkFrame++; player.alpha = (blinkFrame % 6 < 3) ? 0.3 : 1; } else { player.alpha = 1; }
+
+        // speed adjustment by elapsed time (same formula as ham.js)
+        const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+        const newSpeed = minSpeed + Math.floor(elapsed / speedInterval);
+        if (newSpeed !== speedLevel) { speedLevel = newSpeed; adjustDropRate(false, scene); }
+
+        // move items and collision check (scale vertical movement by delta)
+        const children = itemsGroup.getChildren().slice();
+        for (let i = children.length - 1; i >= 0; i--) {
+            const it = children[i];
+            const downKey = (keys.S && keys.S.isDown) || (keys.DOWN && keys.DOWN.isDown);
+            const spd = speedLevel * (downKey ? 2 : 1);
+            it.y += spd * deltaScale;
+
+                if (it.active && rectsOverlap({ x: player.x, y: player.y, w: player.width, h: player.height }, { x: it.x, y: it.y, w: it.displayWidth, h: it.displayHeight })) {
+                    const type = it.getData('type') || 'candy';
+                    // If player is invincible, bombs should NOT be removed on collision (other items still collected)
+                    if (type === 'bomb' && isInvincible) {
+                        // skip handling so bomb remains in play
+                        continue;
+                    }
+                    handleItemCollision(type);
+                    recycleItem(it);
+                    continue;
+                }
+            if (it.y > 700) recycleItem(it);
+        }
+
+        // UI
+        difficultyDisplay.textContent = 'Level: ' + currentDifficulty;
+        scoreDiv.textContent = 'Score: ' + score;
     }
-  } else {
-    player.setVisible(true);
-  }
 
-  if (!cursors) {
-    return;
-  }
-  const left = cursors.left.isDown || inputState.left || wasd.left.isDown;
-  const right = cursors.right.isDown || inputState.right || wasd.right.isDown;
-  const up = cursors.up.isDown || cursors.space.isDown || inputState.up || wasd.up.isDown;
-  const down = cursors.down.isDown || wasd.down.isDown;
+    // collision helper
+    function rectsOverlap(a,b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-  if (left) {
-    player.setVelocityX(-260);
-    player.anims.play("left", true);
-  } else if (right) {
-    player.setVelocityX(260);
-    player.anims.play("right", true);
-  } else {
-    player.setVelocityX(0);
-    player.anims.play("turn");
-  }
+    // item pooling
+    function allocateItem(scene, type, x, y, speed) {
+        let it = null;
+        // reuse from pool
+            if (itemPool.length>0) {
+                it = itemPool.pop();
+                it.setTexture(type);
+                it.setDisplaySize(30,30);
+                it.setOrigin(0,0);
+                it.x = x; it.y = y; it.setVisible(true); it.setActive(true);
+            } else {
+                it = scene.add.image(x,y,type).setDisplaySize(30,30).setOrigin(0,0);
+                itemsGroup.add(it);
+            }
+        it.setData('type', type);
+        if (!itemsGroup.contains(it)) itemsGroup.add(it);
+        return it;
+    }
 
-  if (up && player.body.touching.down) {
-    player.setVelocityY(-330);
-    this.se_jump.play(); // ★ ジャンプ音を鳴らす
-  }
+    function recycleItem(it) {
+        try { it.setVisible(false); it.setActive(false); it.x = -1000; it.y = -1000; } catch(e){}
+        // remove from group if present
+        try { itemsGroup.remove(it); } catch(e){}
+        itemPool.push(it);
+    }
 
-  if (down) {
-    // ★ items.children ではなく normalItems と eventItems を使うように修正
-    normalItems.children.each(item => {
-      if (item.active) {
-        item.setVelocityY(item.originalSpeed * 2);
-      }
+    // completely destroy existing items and rebuild pool (used on restart to avoid leftovers)
+    function clearAllItems(scene) {
+        try {
+            // destroy children in group
+            const children = itemsGroup.getChildren().slice();
+            children.forEach(ch => {
+                try { ch.destroy(); } catch(e) {}
+            });
+            // clear group
+            try { itemsGroup.clear(true); } catch(e) {}
+        } catch(e) {}
+
+        // destroy pooled images
+        try {
+            itemPool.forEach(p => { try { p.destroy(); } catch(e) {} });
+        } catch(e) {}
+        itemPool = [];
+
+        // recreate warmup pool images (same as in create)
+        try {
+            for (let i = 0; i < 30; i++) {
+                const img = scene.add.image(-1000, -1000, 'candy').setDisplaySize(30,30).setVisible(false).setOrigin(0,0);
+                itemPool.push(img);
+            }
+        } catch(e) {}
+    }
+
+    // spawn logic
+    function spawnItem(scene) {
+        if (inKatakanaEvent) return;
+        const r = Math.random(); let type = (r<0.4)?'candy':(r<0.8)?'donut':'bomb';
+        // spawn X so item top-left ranges from 0 to (width - itemWidth)
+        const itemW = 30;
+        const x = Math.random() * (480 - itemW);
+        allocateItem(scene, type, x, -30);
+    }
+
+    function spawnPatternRow(scene) {
+        const itemW = 30;
+        const cols = Math.floor(480 / itemW);
+        const hole = Math.floor(Math.random()*(cols-2));
+        for (let i=0;i<cols;i++){
+                if (i < hole || i > hole+2) allocateItem(scene,'bomb', i*itemW, -itemW);
+            }
+    }
+
+    function spawnKatakanaChar(scene, char, isLastChar) {
+        const pattern = katakanaPatterns[char] || [];
+        const startX = 240 - 90; // center-ish anchor like original
+        // choose random heart position if last char and lives<3
+        let heartIndex = -1; if (isLastChar && lives < 3) heartIndex = Math.floor(Math.random()*pattern.length);
+        pattern.forEach((p, idx)=>{
+            const type = (idx===heartIndex)?'heart':'star';
+                // p[0],p[1] are already multiples of 30; allocate using top-left origin
+                allocateItem(scene, type, startX + p[0], p[1]-100);
+        });
+    }
+
+    // events scheduling (match ham.js phases)
+    function scheduleEvents(scene) {
+        clearEventTimers();
+        let eventPhase = 0;
+
+        const runEvent = () => {
+            eventPhase++;
+            if (eventPhase % 3 === 1) {
+                spawnPatternRow(scene);
+                const t = scene.time.delayedCall(20000, runEvent); eventTimers.push(t);
+            } else if (eventPhase % 3 === 2) {
+                let count=0;
+                const int = scene.time.addEvent({ delay:5000, loop:true, callback:()=>{ spawnPatternRow(scene); if(++count>=3) int.remove(false); }});
+                eventTimers.push(int);
+                const t = scene.time.delayedCall(20000, runEvent); eventTimers.push(t);
+            } else {
+                // katakana
+                inKatakanaEvent = true;
+                const setting = difficultySettings[currentDifficulty];
+                setBackgroundShuffledWithFlip();
+                const chars = setting.katakanaWords[katakanaPatternIndex] || [];
+                let kidx = 0;
+                const nextChar = () => {
+                    if (!gameRunning()) return;
+                    if (kidx < chars.length) {
+                        const isLast = (kidx === chars.length-1);
+                        spawnKatakanaChar(scene, chars[kidx], isLast);
+                        kidx++;
+                        const t = scene.time.delayedCall(2000, nextChar); eventTimers.push(t);
+                    } else {
+                        inKatakanaEvent = false;
+                        const resetT = scene.time.delayedCall(2000, ()=>{
+                            resetBackgroundWithFlip();
+                            minSpeed += 1; speedLevel = minSpeed; adjustDropRate(true, scene); gameStartTime = Date.now();
+                        }); eventTimers.push(resetT);
+                        const t = scene.time.delayedCall(10000, runEvent); eventTimers.push(t);
+                        katakanaPatternIndex = (katakanaPatternIndex+1) % setting.katakanaWords.length;
+                    }
+                };
+                nextChar();
+            }
+        };
+
+        const initial = scene.time.delayedCall(20000, runEvent); eventTimers.push(initial);
+    }
+
+    function clearEventTimers() {
+        eventTimers.forEach(t=>{ try{ t.remove(false); }catch(e){} }); eventTimers = [];
+    }
+
+    // background flip DOM functions
+    function setBackgroundShuffledWithFlip() {
+        const bgLayer = document.getElementById('bgLayer');
+        const setting = difficultySettings[currentDifficulty];
+        let img;
+        if (!firstBgUsed) { img = setting.bgFirst; firstBgUsed = true; }
+        else {
+            if (shuffledImages.length === 0) { shuffledImages = shuffleArray(bgImageList); if (shuffledImages[0] === lastUsedImage) { shuffledImages = shuffleArray(bgImageList); } }
+            img = shuffledImages.shift();
+        }
+        lastUsedImage = img;
+        bgLayer.style.transform = 'rotateY(180deg)';
+        setTimeout(()=>{ bgLayer.style.backgroundImage = `url(${img})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+    }
+
+    function resetBackgroundWithFlip() {
+        const bgLayer = document.getElementById('bgLayer');
+        bgLayer.style.transform = 'rotateY(180deg)';
+        setTimeout(()=>{ bgLayer.style.backgroundImage = `url(${(difficultySettings[currentDifficulty]||{}).defaultBg||''})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+    }
+
+    function shuffleArray(a){ const arr = a.slice(); for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+    // adjust drop rate
+    function adjustDropRate(reset, sceneParam) {
+        const scene = sceneParam || game.scene.scenes[0];
+        if (!scene) return;
+        if (dropTimer) { try{ dropTimer.remove(false); }catch(e){} dropTimer = null; }
+        const setting = difficultySettings[currentDifficulty];
+        if (reset) {
+            dropTimer = scene.time.addEvent({ delay: setting.dropIntervalBase, loop:true, callback: ()=> spawnItem(scene) });
+        } else {
+            const interval = Math.max(300, setting.dropIntervalBase / Math.max(1, speedLevel));
+            dropTimer = scene.time.addEvent({ delay: interval, loop:true, callback: ()=> spawnItem(scene) });
+        }
+    }
+
+    // game start / init
+    function startGame(scene) {
+        // ensure any lingering timers/items from previous run are fully cleared
+        try { if (dropTimer) { try{ dropTimer.remove(false); }catch(e){} dropTimer = null; } } catch(e){}
+        clearEventTimers();
+        try { if (invincibleTimer) { clearTimeout(invincibleTimer); invincibleTimer = null; isInvincible = false; } } catch(e){}
+        try { if (game && game.scene && game.scene.scenes[0] && game.scene.scenes[0]._bgm) { try{ game.scene.scenes[0]._bgm.stop(); }catch(e){} } } catch(e){}
+    // stop any active SFX recorded on the scene (clear/gameover, star, etc.)
+    try { const s = (scene || (game && game.scene && game.scene.scenes[0])); if (s && s._activeSfx) { s._activeSfx.forEach(so => { try{ so.stop && so.stop(); }catch(e){} }); s._activeSfx = []; } } catch(e){}
+        // destroy existing items and rebuild pool
+        try { clearAllItems(scene); } catch(e){}
+
+        // hide screens
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('gameOverScreen').style.display = 'none';
+        document.getElementById('clearScreen').style.display = 'none';
+        document.getElementById('difficultyModal_phaser').style.display = 'none';
+
+        const setting = difficultySettings[currentDifficulty];
+        minSpeed = setting.minSpeed; speedLevel = setting.minSpeed; maxSpeed = setting.maxSpeed; speedInterval = setting.speedInterval;
+        bgImageList = setting.bgImages.slice(); shuffledImages = shuffleArray(bgImageList); firstBgUsed = false; katakanaWords = setting.katakanaWords; katakanaPatternIndex = 0;
+        document.getElementById('bgLayer').style.backgroundImage = `url(${setting.defaultBg})`;
+
+        // reset state
+        score = 0; lives = 3; isInvincible = false; blinkFrame = 0; gameStartTime = Date.now();
+    // clear any remaining items (defensive)
+    try { itemsGroup.getChildren().forEach(it=>recycleItem(it)); } catch(e) {}
+
+        // reset player position/velocity to initial values (important on restart)
+        try {
+            if (player) {
+                player.x = 240; player.y = 580; player.dy = 0; player.onGround = true;
+            }
+        } catch(e) {}
+
+            // show HUD and controls
+            try{ document.getElementById('hearts').style.display = 'flex'; }catch(e){}
+            try{ document.getElementById('score').style.display = 'block'; }catch(e){}
+            try{ document.getElementById('difficultyDisplay').style.display = 'block'; }catch(e){}
+            try{
+                // Show touch controls only on touch-capable devices (mobile/tablet)
+                const controlsEl = document.getElementById('controls');
+                if (controlsEl) {
+                    const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+                    controlsEl.style.display = isTouch ? 'flex' : 'none';
+                }
+            }catch(e){}
+        try{ const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'block'; }catch(e){}
+
+    // start drop timer & events
+    // Use non-reset behavior so initial drop interval is scaled by speedLevel (matches ham.js)
+    adjustDropRate(false, scene);
+        clearEventTimers(); scheduleEvents(scene);
+
+        // BGM: only start if not muted and game is running
+        try{
+            if (!isMuted) {
+                try{ if (scene._bgm) { try{ scene._bgm.stop(); }catch(e){} scene._bgm.destroy && scene._bgm.destroy(); scene._bgm = null; } }catch(e){}
+                if (setting.bgmKey) {
+                    try { scene._bgm = scene.sound.add(setting.bgmKey, { loop:true, volume:0.1 }); scene._bgm.play(); } catch(e) {}
+                }
+            }
+        }catch(e){}
+
+        updateHearts(); updateScore();
+    }
+
+    function endGame(status) {
+        // stop timers
+        if (dropTimer) { try{ dropTimer.remove(false); }catch(e){} dropTimer=null; }
+        clearEventTimers();
+        // stop bgm
+        try{ const s = game.scene.scenes[0]; if (s._bgm) s._bgm.stop(); }catch(e){}
+
+            // hide HUD/controls
+            try{ document.getElementById('controls').style.display = 'none'; }catch(e){}
+            try{ document.getElementById('hearts').style.display = 'none'; }catch(e){}
+            try{ document.getElementById('score').style.display = 'none'; }catch(e){}
+            try{ document.getElementById('difficultyDisplay').style.display = 'none'; }catch(e){}
+        try{ const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; }catch(e){}
+
+        if (status === 'ゲームクリア！') {
+            playSound('clear'); document.getElementById('clearTitle').textContent = '100億点達成！'; document.getElementById('finalClearScore').textContent = 'Score: ' + score; document.getElementById('clearScreen').style.display = 'flex';
+        } else {
+            playSound('gameover'); document.getElementById('endTitle').textContent = status; document.getElementById('finalScore').textContent = 'Score: ' + score; document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+    }
+
+    function handleItemCollision(type) {
+        if (type === 'candy') { score += 3; playSound('item'); }
+        else if (type === 'donut') { score += 9; playSound('item'); }
+        else if (type === 'star') { score += 50000000; playSound('star'); }
+        else if (type === 'heart') { if (lives < 3) { lives++; updateHearts(); } playSound('heart'); }
+        else if (type === 'bomb') {
+            if (!isInvincible) {
+                lives--; updateHearts(); playSound('damage');
+                if (lives <= 0) { endGame('ゲームオーバー'); return; }
+                isInvincible = true; blinkFrame = 0; if (invincibleTimer) clearTimeout(invincibleTimer); invincibleTimer = setTimeout(()=>{ isInvincible = false; }, 3000);
+            }
+        }
+        updateScore();
+        if (score >= 10000000000) endGame('ゲームクリア！');
+    }
+
+    function playerJump(scene) {
+        if (player.onGround) { player.dy = -15; player.onGround = false; playSound('jump'); }
+    }
+
+    function playSound(key) {
+        try{
+            const s = game.scene.scenes[0];
+            if (isMuted) return;
+            if (!s) return;
+            // create an explicit Sound instance so we can stop/destroy it later
+            let snd = null;
+            try {
+                snd = s.sound.add(key, { volume: 0.4 });
+            } catch(e) {
+                // fallback: try play directly
+                try { s.sound.play(key, { volume: 0.4 }); } catch(e) {}
+            }
+            if (snd) {
+                try { snd.play(); } catch(e) {}
+                try {
+                    if (!s._activeSfx) s._activeSfx = [];
+                    s._activeSfx.push(snd);
+                    // remove from list when finished
+                    try { snd.once && snd.once('complete', () => { const idx = s._activeSfx.indexOf(snd); if (idx >= 0) s._activeSfx.splice(idx,1); snd.destroy && snd.destroy(); }); } catch(e){}
+                } catch(e){}
+            }
+        } catch(e){}
+    }
+
+    // sound toggle binding (DOM)
+    function bindSoundToggle() {
+        const btn = document.getElementById('soundToggleBtn');
+        if (!btn) return;
+        const applyState = () => {
+            btn.classList.toggle('muted', isMuted);
+            btn.classList.toggle('unmuted', !isMuted);
+            //btn.textContent = isMuted ? '音: OFF' : '音: ON';
+            btn.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
+            try {
+                const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
+                const running = !!dropTimer; // gameplay indicator
+                if (isMuted) {
+                    // Pause BGM and active SFX rather than destroying so we can resume
+                    try { pauseAllSoundsForMute(s); } catch(e){}
+                } else {
+                    // Unmuted: resume paused sounds if game running; otherwise do nothing
+                    try { resumeAllSounds(s, running); } catch(e){}
+                }
+            } catch(e){}
+        };
+        btn.addEventListener('click', () => { isMuted = !isMuted; applyState(); });
+        applyState();
+    }
+
+    // Pause BGM and active SFX on mute (do not destroy) so they can be resumed
+    function pauseAllSoundsForMute(scene) {
+        try {
+            const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
+            if (!s) return;
+            try { if (s._bgm) { try{ s._bgm.pause && s._bgm.pause(); }catch(e){} } } catch(e){}
+            if (s._activeSfx && s._activeSfx.length) {
+                s._activeSfx.forEach(so => { try{ so.pause && so.pause(); }catch(e){} });
+            }
+        } catch(e) {}
+    }
+
+    // Resume paused sounds when unmuting. If BGM didn't exist and game is running, start it from beginning.
+    function resumeAllSounds(scene, running) {
+        try {
+            const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
+            if (!s) return;
+            // Resume BGM if paused
+            try {
+                if (s._bgm) {
+                    try { s._bgm.resume && s._bgm.resume(); } catch(e) {}
+                } else if (running) {
+                    // if game running and no bgm yet, create and start
+                    try {
+                        const setting = difficultySettings[currentDifficulty] || {};
+                        if (setting.bgmKey) { s._bgm = s.sound.add(setting.bgmKey, { loop:true, volume:0.1 }); s._bgm.play(); }
+                    } catch(e){}
+                }
+            } catch(e){}
+            // Resume SFX
+            if (s._activeSfx && s._activeSfx.length) {
+                s._activeSfx.forEach(so => { try{ so.resume && so.resume(); }catch(e){} });
+            }
+        } catch(e) {}
+    }
+
+    // helper to stop bgm and active sfx for a given scene
+    function stopAllSounds(scene) {
+        try {
+            const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
+            if (!s) return;
+            try { if (s._bgm) { try{ s._bgm.stop(); }catch(e){} try{ s._bgm.destroy && s._bgm.destroy(); }catch(e){} s._bgm = null; } } catch(e){}
+            if (s._activeSfx && s._activeSfx.length) {
+                s._activeSfx.forEach(so => { try{ so.stop && so.stop(); }catch(e){} try{ so.destroy && so.destroy(); }catch(e){} });
+                s._activeSfx = [];
+            }
+        } catch(e) {}
+    }
+
+    function updateHearts() {
+        heartsDiv.innerHTML = '';
+        for (let i=0;i<3;i++){ const img = document.createElement('img'); img.src = (i<lives)?IMG_PATHS.heart:IMG_PATHS.heartEmpty; heartsDiv.appendChild(img); }
+    }
+    function updateScore(){ scoreDiv.textContent = 'Score: ' + score; }
+
+    // share button bindings (reuse original share code)
+    function bindShareButtons() {
+    // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
+    const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
+    const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
+        const gameUrl = encodeURIComponent('https://www.google.com/?hl=ja');
+        const hashtags = ["牡蠣サーモンキャッチゲーム","藤崎団活動報告","藤崎未来生誕祭2025"];
+        const formattedHashtags = hashtags.map(t=>`#${t}`).join(' ');
+
+        const makeHandler = () => {
+                // build share URLs at click-time so score is current
+                const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
+                const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
+                const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
+                return (e)=>{
+                    // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
+                    try{ if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; }catch(err){}
+
+                    const nw = window.open(shareUrlWeb,'_blank');
+                    try{
+                        if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
+                    }catch(e){}
+                };
+            };
+
+            if (shareBtn) {
+                // use addEventListener so we don't accidentally overwrite other handlers
+                shareBtn.addEventListener('click', makeHandler());
+                if (shareBtn.tagName === 'A') { shareBtn.href = '#'; shareBtn.target = '_blank'; shareBtn.rel = 'noopener noreferrer'; }
+            }
+            if (shareBtnTop) {
+                shareBtnTop.addEventListener('click', makeHandler());
+                if (shareBtnTop.tagName === 'A') { shareBtnTop.href = '#'; shareBtnTop.target = '_blank'; shareBtnTop.rel = 'noopener noreferrer'; }
+            }
+    }
+
+    // expose startGame to window for manual triggers
+    window.phaserStartGame = function() { const s = game.scene.scenes[0]; if (s) startGame(s); };
+
+    // init bind share and fallback UI bindings
+    window.addEventListener('load', ()=>{
+        bindShareButtons();
+        // Fallback: ensure start button always opens the difficulty modal even if Phaser hasn't bound handlers yet
+        try {
+            const startBtnFallback = document.getElementById('startBtn_phaser');
+            if (startBtnFallback) {
+                startBtnFallback.addEventListener('click', ()=>{
+                    const modal = document.getElementById('difficultyModal_phaser');
+                    if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+                });
+            }
+        } catch(e){}
+
+        // Fallback: bind difficulty buttons so they call startGame even if Phaser scene isn't ready yet
+        try {
+            document.querySelectorAll('.diffBtn_phaser').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const lvl = parseInt(e.currentTarget.dataset.level);
+                    currentDifficulty = lvl;
+                    const modal = document.getElementById('difficultyModal_phaser'); if (modal) modal.style.display = 'none';
+
+                    // Try to start the game; if scene not ready, retry a few times
+                    let attempts = 0;
+                    const tryStart = () => {
+                        const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
+                        if (s) {
+                            try { startGame(s); } catch(e) {}
+                        } else if (attempts < 10) {
+                            attempts++;
+                            setTimeout(tryStart, 100);
+                        }
+                    };
+                    tryStart();
+                });
+            });
+        } catch(e){}
     });
-    eventItems.children.each(item => {
-      if (item.active) {
-        item.setVelocityY(item.originalSpeed * 2);
-      }
-    });
-  } else {
-    // ★ items.children ではなく normalItems と eventItems を使うように修正
-    normalItems.children.each(item => {
-      if (item.active) {
-        item.setVelocityY(item.originalSpeed);
-      }
-    });
-    eventItems.children.each(item => {
-      if (item.active) {
-        item.setVelocityY(item.originalSpeed);
-      }
-    });
 
-  }
+    // export some helper for debugging
+    window._phaserGame = { game };
 
-  if (score >= 10000000000 && !gameClear) {
-    this.physics.pause();
-    gameClear = true;
-
-    gameScreen.style.display = 'none';
-    gameClearScreen.style.display = 'flex';
-    document.getElementById('final-score-clear').textContent = score;
-    this.se_clear.play(); // ★ クリア音
-    // ★BGM停止ロジック: BGMがロードされ、かつ再生中であれば停止する
-    if (bgm && bgm.isPlaying) {
-      bgm.stop();
-    }
-  }
-}
-
-function setupMobileControls() {
-  document.getElementById("leftBtn").addEventListener("touchstart", () => inputState.left = true);
-  document.getElementById("leftBtn").addEventListener("touchend", () => inputState.left = false);
-
-  document.getElementById("rightBtn").addEventListener("touchstart", () => inputState.right = true);
-  document.getElementById("rightBtn").addEventListener("touchend", () => inputState.right = false);
-
-  document.getElementById("jumpBtn").addEventListener("touchstart", () => inputState.up = true);
-  document.getElementById("jumpBtn").addEventListener("touchend", () => inputState.up = false);
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  const startButton = document.getElementById('start-button');
-  const restartButtonOver = document.getElementById('restart-button-over');
-  const restartButtonClear = document.getElementById('restart-button-clear');
-  const backButtonOver = document.getElementById('back-button-over');   // ★追加
-  const backButtonClear = document.getElementById('back-button-clear'); // ★追加
-
-  startButton.addEventListener('click', () => {
-    gameStarted = true;
-    startScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
-    playBGM();
-
-    // 物理エンジンを再開
-    gameScene.scene.restart();
-
-  });
-
-  restartButtonOver.addEventListener('click', () => {
-    gameScene.sound.stopAll();
-    restartGame();
-  });
-  restartButtonClear.addEventListener('click', () => {
-    gameScene.sound.stopAll();
-    restartGame();
-  });
-
-  backButtonOver.addEventListener('click', () => {
-    gameScene.sound.stopAll();
-    backToStart();
-  });
-  backButtonClear.addEventListener('click', () => {
-    gameScene.sound.stopAll();
-    backToStart();
-  });
-
-  // restartButtonOver.addEventListener('click', restartGame);
-  // restartButtonClear.addEventListener('click', restartGame);
-
-  // ★追加：スタートに戻るボタン
-  // backButtonOver.addEventListener('click', backToStart);
-  // backButtonClear.addEventListener('click', backToStart);
-
-});
-
-function playBGM() {
-  // gameSceneが未定義の場合（ロード完了前など）は処理しない
-  if (!gameScene || !gameScene.sound) return;
-
-  // BGMがまだ作成されていない場合のみ作成する
-  if (bgm === null || !bgm.key) {
-    // Phaserのサウンドシステムを使ってBGMオブジェクトを作成
-    // { loop: true } でループ再生を設定
-    bgm = gameScene.sound.add('bgm', { loop: true, volume: 0.5 });
-  }
-
-  // BGMが停止中の場合のみ再生（すでに再生中の場合は何もしない）
-  if (!bgm.isPlaying) {
-    bgm.play();
-  }
-}
-
-
-
-function restartGame() {
-  // 画面
-  gameOverScreen.style.display = 'none';
-  gameClearScreen.style.display = 'none';
-  gameScreen.style.display = 'block';
-  document.getElementById("score").textContent = "Score: 0";
-  playBGM();
-
-  // 古いイベントタイマー類を消す
-  clearAllEventTimers(gameScene);
-
-  // 無敵タイマー（setTimeout）を残さない
-  if (invincibleTimer) {
-    clearTimeout(invincibleTimer);
-    invincibleTimer = null;
-  }
-  isInvincible = false;
-
-  // 再スタート前に「ゲーム開始フラグ」を立てる（create() の条件分岐で参照される）
-  gameStarted = true;
-
-  // シーン再起動
-  gameScene.scene.restart();
-
-
-  // （保険）短時間後に物理エンジンが停止していたら再開する処理
-  // create() の修正を入れたなら不要だが、安全策として入れておくとデバッグが楽になります
-  setTimeout(() => {
-    if (gameScene && gameScene.physics && gameScene.physics.world && gameScene.physics.world.isPaused) {
-      gameScene.physics.resume();
-    }
-  }, 120);
-}
-
-function backToStart() {
-  // 画面の表示をスタート画面に戻す
-  try {
-    gameOverScreen.style.display = 'none';
-    gameClearScreen.style.display = 'none';
-    gameScreen.style.display = 'none';
-    startScreen.style.display = 'block';
-  } catch (e) {
-    // DOM が未定義なら無視
-    console.warn('DOM hide/show failed:', e);
-  }
-
-  // --- グローバル状態を確実に初期化 ---
-  // 既存のタイマー類を全て消す（Phaser の TimerEvent と setTimeout）
-  try {
-    clearAllEventTimers(gameScene);
-  } catch (e) { console.warn('clearAllEventTimers failed', e); }
-
-  if (invincibleTimer) {
-    clearTimeout(invincibleTimer);
-    invincibleTimer = null;
-  }
-  isInvincible = false;
-
-  // ゲーム状態の基本値をリセット
-  lives = 3;
-  score = 0;
-  gameOver = false;
-  gameClear = false;
-  gameTime = 0;
-  gameStarted = false;
-
-  // イベント管理用変数も初期化
-  eventTimers = [];
-  inSpecialEvent = false;
-  inKatakanaEvent = false;
-  katakanaPatternIndex = 0;
-  specialCycleCount = 0;
-  katBgQueue = [];
-  activeBgIndex = 0;
-
-  // UI 表示リセット
-  const scoreEl = document.getElementById("score");
-  if (scoreEl) scoreEl.textContent = "Score: 0";
-
-  // **重要**: phaserGame.loop.stop() は取り除く（これが残ると再稼働できなくなることがある）
-  // （もし既に呼んでいる箇所があれば削除してください）
-
-  // シーンを再起動して完全に再作成させる（create() が再度走る）
-  if (gameScene && gameScene.scene) {
-    try {
-      gameScene.scene.restart();
-    } catch (e) {
-      console.error('scene.restart failed:', e);
-    }
-  } else {
-    console.warn('gameScene is not ready for restart.');
-  }
-
-  // 保険で短時間後に物理エンジンを停止（create の動作に依存するが安全策）
-  setTimeout(() => {
-    if (gameScene && gameScene.physics && !gameStarted) {
-      try { gameScene.physics.pause(); } catch (e) { /* ignore */ }
-    }
-  }, 150);
-}
-
-
-function isTouchDevice() {
-  return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  if (isTouchDevice()) {
-    document.getElementById('controls').style.display = 'flex';
-  }
-});
+})();
