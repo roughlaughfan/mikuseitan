@@ -792,8 +792,8 @@
     }
 
     function showSplashThenInit() {
-        // Prefer a user-provided splash image; fallback to start_img.png
-        const splashPath = 'asset/images/start_img.png';
+        // Prefer a user-provided splash image; fallback to splash.png
+        const splashPath = 'asset/images/splash.png';
         const overlay = createSplashOverlay(splashPath, 1200, () => {
             // warmup resources in background
             try { warmupResources(); } catch (e) { }
