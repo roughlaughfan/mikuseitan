@@ -711,46 +711,112 @@
             }
     }
 
+    // --- Splash and warmup helpers ---
+    function createSplashOverlay(imagePath, durationMs, onFinish) {
+        try {
+            const overlay = document.createElement('div');
+            overlay.id = 'phaserSplashOverlay';
+            overlay.style.position = 'fixed';
+            overlay.style.left = '0';
+            overlay.style.top = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.background = '#000';
+            overlay.style.zIndex = '99999';
+            overlay.style.cursor = 'pointer';
+
+            const img = document.createElement('img');
+            img.src = imagePath || 'asset/images/start_img.png';
+            img.alt = 'splash';
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '90%';
+            img.style.objectFit = 'contain';
+            overlay.appendChild(img);
+
+            let removed = false;
+            const remove = () => {
+                if (removed) return; removed = true;
+                try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch(e) {}
+                try { onFinish && onFinish(); } catch(e) {}
+            };
+
+            overlay.addEventListener('click', remove);
+            // auto-dismiss after durationMs if provided
+            if (durationMs && durationMs > 0) setTimeout(remove, durationMs);
+
+            return overlay;
+        } catch(e) { try { onFinish && onFinish(); } catch(ex){} return null; }
+    }
+
+    function warmupResources() {
+        try {
+            // Warmup a small set of images to reduce first-frame work
+            const setting = difficultySettings[currentDifficulty] || {};
+            const urls = [];
+            if (setting.defaultBg) urls.push(setting.defaultBg);
+            if (Array.isArray(setting.bgImages)) urls.push(...setting.bgImages.slice(0,3));
+            // core sprites
+            urls.push(IMG_PATHS.player);
+            urls.push(IMG_PATHS.candy);
+
+            urls.forEach(u => { try { const i = new Image(); i.src = u; } catch(e){} });
+        } catch(e) {}
+    }
+
+    function showSplashThenInit() {
+        // Prefer a user-provided splash image; fallback to start_img.png
+        const splashPath = 'asset/images/start_img.png';
+        const overlay = createSplashOverlay(splashPath, 1200, () => {
+            // warmup resources in background
+            try { warmupResources(); } catch(e) {}
+            // After splash removal, bind share buttons and fallback handlers (same as original load handlers)
+            try { bindShareButtons(); } catch(e) {}
+
+            try {
+                const startBtnFallback = document.getElementById('startBtn_phaser');
+                if (startBtnFallback) {
+                    startBtnFallback.addEventListener('click', ()=>{
+                        const modal = document.getElementById('difficultyModal_phaser');
+                        if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+                    });
+                }
+            } catch(e){}
+
+            try {
+                document.querySelectorAll('.diffBtn_phaser').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const lvl = parseInt(e.currentTarget.dataset.level);
+                        currentDifficulty = lvl;
+                        const modal = document.getElementById('difficultyModal_phaser'); if (modal) modal.style.display = 'none';
+
+                        let attempts = 0;
+                        const tryStart = () => {
+                            const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
+                            if (s) {
+                                try { startGame(s); } catch(e){}
+                            } else if (attempts < 10) {
+                                attempts++;
+                                setTimeout(tryStart, 100);
+                            }
+                        };
+                        tryStart();
+                    });
+                });
+            } catch(e){}
+        });
+
+        try { if (overlay) document.body.appendChild(overlay); } catch(e) {}
+    }
+
     // expose startGame to window for manual triggers
     window.phaserStartGame = function() { const s = game.scene.scenes[0]; if (s) startGame(s); };
 
-    // init bind share and fallback UI bindings
+    // init bind share and fallback UI bindings via splash flow
     window.addEventListener('load', ()=>{
-        bindShareButtons();
-        // Fallback: ensure start button always opens the difficulty modal even if Phaser hasn't bound handlers yet
-        try {
-            const startBtnFallback = document.getElementById('startBtn_phaser');
-            if (startBtnFallback) {
-                startBtnFallback.addEventListener('click', ()=>{
-                    const modal = document.getElementById('difficultyModal_phaser');
-                    if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
-                });
-            }
-        } catch(e){}
-
-        // Fallback: bind difficulty buttons so they call startGame even if Phaser scene isn't ready yet
-        try {
-            document.querySelectorAll('.diffBtn_phaser').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const lvl = parseInt(e.currentTarget.dataset.level);
-                    currentDifficulty = lvl;
-                    const modal = document.getElementById('difficultyModal_phaser'); if (modal) modal.style.display = 'none';
-
-                    // Try to start the game; if scene not ready, retry a few times
-                    let attempts = 0;
-                    const tryStart = () => {
-                        const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
-                        if (s) {
-                            try { startGame(s); } catch(e) {}
-                        } else if (attempts < 10) {
-                            attempts++;
-                            setTimeout(tryStart, 100);
-                        }
-                    };
-                    tryStart();
-                });
-            });
-        } catch(e){}
+        try { showSplashThenInit(); } catch(e) { try { bindShareButtons(); } catch(e){} }
     });
 
     // export some helper for debugging
