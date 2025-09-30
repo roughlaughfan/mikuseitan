@@ -739,11 +739,11 @@ function showKatakanaBackground(scene) {
       ? katBgFirstIndexByDifficulty[d]
       : 0;
 
-        // ヒント背景以外を抽出（s_bg01〜09）
-    const otherIndices = backgrounds_str.map((_, i) => i).filter(i => i > 2);
+    // ヒント背景は固定で最初に出す
+    // 以降は「ヒント背景を除外」してシャッフル
+    const otherIndices = backgrounds_str.map((_, i) => i).filter(i => i !== fixedIndex);
     Phaser.Utils.Array.Shuffle(otherIndices);
 
-    // 最初だけ固定 → その後シャッフル
     katBgQueue = [fixedIndex].concat(otherIndices);
   }
 
@@ -752,12 +752,20 @@ function showKatakanaBackground(scene) {
 
   // === キューが空になったら再構築（連続同一防止あり） ===
   if (katBgQueue.length === 0) {
-    const allIndices = backgrounds_str.map((_, i) => i);
+    // fixedIndex はもう含めない！
+    const d = difficulty || 'normal';
+    const fixedIndex = katBgFirstIndexByDifficulty[d] !== undefined
+      ? katBgFirstIndexByDifficulty[d]
+      : 0;
+
+    const allIndices = backgrounds_str.map((_, i) => i).filter(i => i !== fixedIndex);
     Phaser.Utils.Array.Shuffle(allIndices);
+
+    // 直前と同じが先頭に来ないよう調整
     if (allIndices[0] === imgKeyIndex && allIndices.length > 1) {
-      // 先頭が直前と同じなら入れ替え
       [allIndices[0], allIndices[1]] = [allIndices[1], allIndices[0]];
     }
+
     katBgQueue = allIndices;
   }
 
@@ -767,9 +775,9 @@ function showKatakanaBackground(scene) {
   // 背景を登場させる
   flipInBackground(scene, targetSprite, targetSprite.texture.key);
 
-  // return しておくと、特殊イベント終了時に flipOutBackground を呼べる
   return targetSprite;
 }
+
 
 
 // === 背景登場 ===
