@@ -104,9 +104,9 @@
             bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
             katakanaWords: [
-                ["セ", "イ", "タ", "ン","ポ", "ス", "タ", "ー"],
+                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
                 ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
-                ["エ", "キ" ,"コ", "ウ", "ナ", "イ"],
+                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
                 ["ミ", "ク", "チ", "ャ", "ン"],
                 ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
                 ["オ", "メ", "デ", "ト", "ウ"],
@@ -208,10 +208,39 @@
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
         const jumpBtn = document.getElementById('jumpBtn');
-        if (leftBtn) { leftBtn.addEventListener('pointerdown', () => { scene._keys.LEFT.isDown = true; }); leftBtn.addEventListener('pointerup', () => { scene._keys.LEFT.isDown = false; }); }
-        if (rightBtn) { rightBtn.addEventListener('pointerdown', () => { scene._keys.RIGHT.isDown = true; }); rightBtn.addEventListener('pointerup', () => { scene._keys.RIGHT.isDown = false; }); }
-        if (jumpBtn) jumpBtn.addEventListener('pointerdown', () => { if (gameRunning()) playerJump(scene); });
 
+        if (leftBtn) {
+            leftBtn.addEventListener('pointerdown', () => {
+                scene._keys.LEFT.isDown = true;
+                scene._keys.RIGHT.isDown = false; // 右をキャンセル
+            });
+            leftBtn.addEventListener('pointerup', () => {
+                scene._keys.LEFT.isDown = false;
+            });
+            leftBtn.addEventListener('pointerout', () => {
+                scene._keys.LEFT.isDown = false;
+            });
+        }
+
+        if (rightBtn) {
+            rightBtn.addEventListener('pointerdown', () => {
+                scene._keys.RIGHT.isDown = true;
+                scene._keys.LEFT.isDown = false; // 左をキャンセル
+            });
+            rightBtn.addEventListener('pointerup', () => {
+                scene._keys.RIGHT.isDown = false;
+            });
+            rightBtn.addEventListener('pointerout', () => {
+                scene._keys.RIGHT.isDown = false;
+            });
+        }
+
+        if (jumpBtn) {
+            jumpBtn.addEventListener('pointerdown', () => {
+                if (gameRunning()) playerJump(scene);
+            });
+        }
+        
         // initial UI
         updateHearts(); updateScore();
         // bind sound toggle button
