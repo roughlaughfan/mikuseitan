@@ -730,7 +730,7 @@
             overlay.style.cursor = 'pointer';
 
             const img = document.createElement('img');
-            img.src = imagePath || 'asset/images/start_img.png';
+            img.src = imagePath || 'asset/images/splash.png';
             img.alt = 'splash';
             img.style.maxWidth = '90%';
             img.style.maxHeight = '90%';
