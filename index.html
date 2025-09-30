@@ -16,11 +16,15 @@
 
 <body>
 <div id="main">
+  <div id="splash-screen">
+    <img src="asset/images/splash.png" alt="">
+</div>
 <div class="main_wrap" id="main_wrap">
+
 <!-- スタート画面 （元の index.html と同一の構造を流用） -->
 <div id="startScreen">
 <h1>牡蠣サーモンキャッチ</h1>
-<p>みくちゃんの好きな牡蠣やサーモン寿司をたくさん集めてみくちゃんに会いに行こう！</p>
+<p>みくちゃんの好きな牡蠣やサーモン寿司をたくさん集めてみくちゃんの生誕祭をお祝いしよう！みくちゃんはどこにいるのかな？</p>
 <p class="img"><img alt="" src="asset/images/start_img.png"/></p>
 <a class="btn" id="startBtn_phaser"><span id="startBtnText_phaser">遊ぶ</span></a>
 </div>
@@ -87,10 +91,12 @@
 <!-- 難易度選択ウィンドウ -->
 <div class="modal" id="difficultyModal_phaser" style="display:none;">
 <h2>難易度を選んでね</h2>
-<p>★開発向け：時期に合わせてボタンを公開</p>
+<!-- <p>★開発向け：時期に合わせてボタンを公開</p> -->
 <a class="btn diffBtn_phaser" data-level="1">第一弾（難しい）</a>
-<a class="btn diffBtn_phaser" data-level="2">第二弾（ふつう）</a>
-<a class="btn diffBtn_phaser" data-level="3">第三弾（簡単）</a>
+<a class="btn mada">第二弾（普通・10/30公開）</a>
+<a class="btn mada">第三弾（簡単・11/14公開）</a>
+<!-- <a class="btn diffBtn_phaser" data-level="2">第二弾（ふつう）</a>
+<a class="btn diffBtn_phaser" data-level="3">第三弾（簡単）</a> -->
 </div>
 
 <div id="bgLayer"></div>
@@ -118,5 +124,18 @@
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <!-- Phaserベースのゲームロジック -->
 <script type="text/javascript" src="asset/js/ham.js"></script>
+<script>
+    const delay = (ms) => {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms)
+        })
+    };
+
+    const hideSplashScreen = async () => {
+        await delay(4000);
+        document.getElementById('splash-screen').style.display = 'none';
+    };
+    hideSplashScreen();
+</script>
 </body>
 </html>

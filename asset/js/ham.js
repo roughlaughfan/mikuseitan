@@ -65,13 +65,6 @@
         "ナ": [[3, 0], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [3, 3], [3, 4], [2, 5], [1, 6]].map(([x, y]) => [x * 30, y * 30])
     };
 
-    // ====== 単語リスト（ham.js からコピー） ======
-    // let katakanaWords = [
-    //     ["フ","ジ","サ","キ","ミ","ク"],
-    //     ["タ","ン","ジ","ョ","ウ","ビ"],
-    //     ["オ","メ","デ","ト","ウ"]
-    // ];
-
     // ====== 難易度設定（ham.js と同一） ======
     const difficultySettings = {
         1: {
@@ -111,10 +104,12 @@
             bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
             katakanaWords: [
-                ["ポ", "ス", "タ", "ー", "ハ"],
-                ["ト", "ウ", "キ", "ュ", "ウ"],
-                ["シ", "ブ", "ヤ", "エ", "キ"],
-                ["コ", "ウ", "ナ", "イ"]
+                ["セ", "イ", "タ", "ン","ポ", "ス", "タ", "ー"],
+                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
+                ["エ", "キ" ,"コ", "ウ", "ナ", "イ"],
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"],
             ]
         }
     };
@@ -713,66 +708,66 @@
 
 
     // --- Splash and warmup helpers ---
-    function createSplashOverlay(imagePath, onFinish) {
-        try {
-            const overlay = document.createElement('div');
-            overlay.id = 'phaserSplashOverlay';
-            overlay.style.position = 'fixed';
-            overlay.style.left = '0';
-            overlay.style.top = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.background = '#f0f0f0'; // 背景は即時表示
-            overlay.style.zIndex = '99999';
-            overlay.style.cursor = 'pointer';
+    // function createSplashOverlay(imagePath, onFinish) {
+    //     try {
+    //         const overlay = document.createElement('div');
+    //         overlay.id = 'phaserSplashOverlay';
+    //         overlay.style.position = 'fixed';
+    //         overlay.style.left = '0';
+    //         overlay.style.top = '0';
+    //         overlay.style.width = '100%';
+    //         overlay.style.height = '100%';
+    //         overlay.style.display = 'flex';
+    //         overlay.style.alignItems = 'center';
+    //         overlay.style.justifyContent = 'center';
+    //         overlay.style.background = '#f0f0f0'; // 背景は即時表示
+    //         overlay.style.zIndex = '99999';
+    //         overlay.style.cursor = 'pointer';
 
-            const img = document.createElement('img');
-            img.src = imagePath || 'asset/images/splash.png';
-            img.alt = 'splash';
-            img.style.maxWidth = '90%';
-            img.style.maxHeight = '90%';
-            img.style.objectFit = 'contain';
-            img.style.opacity = '0'; // 最初は透明
-            img.style.transition = 'opacity 3s ease'; // フェードに3秒
-            overlay.appendChild(img);
+    //         const img = document.createElement('img');
+    //         img.src = imagePath || 'asset/images/splash.png';
+    //         img.alt = 'splash';
+    //         img.style.maxWidth = '90%';
+    //         img.style.maxHeight = '90%';
+    //         img.style.objectFit = 'contain';
+    //         img.style.opacity = '0'; // 最初は透明
+    //         img.style.transition = 'opacity 3s ease'; // フェードに3秒
+    //         overlay.appendChild(img);
 
-            let removed = false;
-            const remove = () => {
-                if (removed) return;
-                removed = true;
+    //         let removed = false;
+    //         const remove = () => {
+    //             if (removed) return;
+    //             removed = true;
 
-                // フェードアウト開始
-                img.style.opacity = '0';
+    //             // フェードアウト開始
+    //             img.style.opacity = '0';
 
-                // フェードアウト終了後に削除
-                setTimeout(() => {
-                    try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch (e) { }
-                    try { onFinish && onFinish(); } catch (e) { }
-                }, 3000); // フェードアウト時間と合わせる
-            };
+    //             // フェードアウト終了後に削除
+    //             setTimeout(() => {
+    //                 try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch (e) { }
+    //                 try { onFinish && onFinish(); } catch (e) { }
+    //             }, 3000); // フェードアウト時間と合わせる
+    //         };
 
-            overlay.addEventListener('click', remove);
+    //         overlay.addEventListener('click', remove);
 
-            // DOMに追加してからフェードイン開始
-            document.body.appendChild(overlay);
-            requestAnimationFrame(() => {
-                img.style.opacity = '1';
-            });
+    //         // DOMに追加してからフェードイン開始
+    //         document.body.appendChild(overlay);
+    //         requestAnimationFrame(() => {
+    //             img.style.opacity = '1';
+    //         });
 
-            // フェードイン終了後に3秒待ってフェードアウト開始
-            setTimeout(() => {
-                remove();
-            }, 3000 + 3000); // フェードイン3秒 + 表示3秒 = 6秒後にフェードアウト開始
+    //         // フェードイン終了後に3秒待ってフェードアウト開始
+    //         setTimeout(() => {
+    //             remove();
+    //         }, 3000 + 2000); // フェードイン3秒 + 表示3秒 = 6秒後にフェードアウト開始
 
-            return overlay;
-        } catch (e) {
-            try { onFinish && onFinish(); } catch (ex) { }
-            return null;
-        }
-    }
+    //         return overlay;
+    //     } catch (e) {
+    //         try { onFinish && onFinish(); } catch (ex) { }
+    //         return null;
+    //     }
+    // }
 
 
 
@@ -791,50 +786,50 @@
         } catch (e) { }
     }
 
-    function showSplashThenInit() {
-        // Prefer a user-provided splash image; fallback to splash.png
-        const splashPath = 'asset/images/splash.png';
-        const overlay = createSplashOverlay(splashPath, 1200, () => {
-            // warmup resources in background
-            try { warmupResources(); } catch (e) { }
-            // After splash removal, bind share buttons and fallback handlers (same as original load handlers)
-            try { bindShareButtons(); } catch (e) { }
+    // function showSplashThenInit() {
+    //     // Prefer a user-provided splash image; fallback to splash.png
+    //     const splashPath = 'asset/images/splash.png';
+    //     const overlay = createSplashOverlay(splashPath, 1200, () => {
+    //         // warmup resources in background
+    //         try { warmupResources(); } catch (e) { }
+    //         // After splash removal, bind share buttons and fallback handlers (same as original load handlers)
+    //         try { bindShareButtons(); } catch (e) { }
 
-            try {
-                const startBtnFallback = document.getElementById('startBtn_phaser');
-                if (startBtnFallback) {
-                    startBtnFallback.addEventListener('click', () => {
-                        const modal = document.getElementById('difficultyModal_phaser');
-                        if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
-                    });
-                }
-            } catch (e) { }
+    //         try {
+    //             const startBtnFallback = document.getElementById('startBtn_phaser');
+    //             if (startBtnFallback) {
+    //                 startBtnFallback.addEventListener('click', () => {
+    //                     const modal = document.getElementById('difficultyModal_phaser');
+    //                     if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    //                 });
+    //             }
+    //         } catch (e) { }
 
-            try {
-                document.querySelectorAll('.diffBtn_phaser').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const lvl = parseInt(e.currentTarget.dataset.level);
-                        currentDifficulty = lvl;
-                        const modal = document.getElementById('difficultyModal_phaser'); if (modal) modal.style.display = 'none';
+    //         try {
+    //             document.querySelectorAll('.diffBtn_phaser').forEach(btn => {
+    //                 btn.addEventListener('click', (e) => {
+    //                     const lvl = parseInt(e.currentTarget.dataset.level);
+    //                     currentDifficulty = lvl;
+    //                     const modal = document.getElementById('difficultyModal_phaser'); if (modal) modal.style.display = 'none';
 
-                        let attempts = 0;
-                        const tryStart = () => {
-                            const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
-                            if (s) {
-                                try { startGame(s); } catch (e) { }
-                            } else if (attempts < 10) {
-                                attempts++;
-                                setTimeout(tryStart, 100);
-                            }
-                        };
-                        tryStart();
-                    });
-                });
-            } catch (e) { }
-        });
+    //                     let attempts = 0;
+    //                     const tryStart = () => {
+    //                         const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
+    //                         if (s) {
+    //                             try { startGame(s); } catch (e) { }
+    //                         } else if (attempts < 10) {
+    //                             attempts++;
+    //                             setTimeout(tryStart, 100);
+    //                         }
+    //                     };
+    //                     tryStart();
+    //                 });
+    //             });
+    //         } catch (e) { }
+    //     });
 
-        try { if (overlay) document.body.appendChild(overlay); } catch (e) { }
-    }
+    //     try { if (overlay) document.body.appendChild(overlay); } catch (e) { }
+    // }
 
     // expose startGame to window for manual triggers
     window.phaserStartGame = function () { const s = game.scene.scenes[0]; if (s) startGame(s); };
