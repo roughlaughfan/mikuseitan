@@ -30,47 +30,47 @@
 
     // ====== カタカナパターン（ham.js から移植） ======
     const katakanaPatterns = {
-        "フ": [[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[5,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "ジ": [[0,0],[2,0],[4,0],[6,0],[1,1],[0,2],[4,2],[1,3],[5,3],[4,4],[3,5],[0,6],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "サ": [[2,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[2,2],[4,2],[2,3],[4,3],[5,4],[4,5],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
-        "キ": [[3,0],[1,1],[2,1],[3,1],[4,1],[5,1],[3,2],[3,3],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[3,5],[3,6]].map(([x,y])=>[x*30,y*30]),
-        "ミ": [[1,0],[2,0],[3,0],[4,1],[5,1],[2,2],[3,3],[4,3],[1,5],[2,5],[3,5],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "ク": [[2,0],[2,1],[3,1],[4,1],[5,1],[1,2],[5,2],[0,3],[6,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "オ": [[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[4,2],[3,3],[4,3],[2,4],[4,4],[0,5],[1,5],[4,5],[3,6],[4,6]].map(([x,y])=>[x*30,y*30]),
-        "タ": [[2,0],[2,1],[3,1],[4,1],[5,1],[1,2],[5,2],[0,3],[2,3],[4,3],[6,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "ン": [[1,0],[2,1],[6,2],[6,3],[5,4],[4,5],[1,6],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
-        "ョ": [[1,2],[2,2],[3,2],[4,2],[4,3],[2,4],[3,4],[4,4],[4,5],[1,6],[2,6],[3,6],[4,6]].map(([x,y])=>[x*30,y*30]),
-        "ウ": [[2,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[0,2],[5,2],[5,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "ビ": [[0,0],[3,0],[5,0],[7,0],[0,1],[0,2],[3,2],[4,2],[0,3],[1,3],[2,3],[3,3],[0,4],[0,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "メ": [[5,0],[5,1],[1,2],[2,2],[3,2],[5,2],[4,3],[3,4],[5,4],[2,5],[5,5],[0,6],[1,6]].map(([x,y])=>[x*30,y*30]),
-        "デ": [[1,0],[2,0],[3,0],[4,0],[6,0],[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[3,3],[3,4],[3,5],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "ト": [[2,0],[2,1],[2,2],[2,3],[3,3],[4,3],[2,4],[4,4],[2,5],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "チ": [[4,0],[5,0],[1,1],[2,1],[3,1],[3,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[3,4],[3,5],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "ャ": [[2,2],[2,3],[3,3],[4,3],[5,3],[2,4],[5,4],[2,5],[5,5],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "セ": [[2,0],[2,1],[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[2,3],[6,3],[2,4],[5,4],[2,5],[3,6],[4,6],[5,6],[6,6]].map(([x,y])=>[x*30,y*30]),
-        "イ": [[5,0],[4,1],[3,2],[2,3],[3,3],[0,4],[1,4],[3,4],[3,5],[3,6]].map(([x,y])=>[x*30,y*30]),
-        "2": [[1,0],[2,0],[3,0],[4,0],[5,0],[0,1],[6,1],[6,2],[3,3],[4,3],[1,4],[2,4],[0,5],[0,6],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "0": [[1,0],[2,0],[3,0],[4,0],[5,0],[0,1],[6,1],[0,2],[4,2],[5,2],[0,3],[1,3],[4,3],[5,3],[0,4],[1,4],[6,4],[0,5],[6,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "5": [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[0,1],[0,2],[1,2],[2,2],[3,2],[4,2],[0,3],[5,3],[5,4],[0,5],[5,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "ポ": [[3,0],[5,0],[3,1],[4,1],[6,1],[0,2],[1,2],[2,2],[3,2],[5,2],[3,3],[1,4],[3,4],[5,4],[0,5],[3,5],[6,5],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
-        "ス": [[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[4,3],[4,4],[2,5],[3,5],[5,5],[0,6],[1,6],[6,6]].map(([x,y])=>[x*30,y*30]),
-        "ー": [[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3]].map(([x,y])=>[x*30,y*30]),
-        "ハ": [[2,1],[4,1],[2,2],[5,2],[2,3],[5,3],[1,4],[6,4],[1,5],[6,5],[0,6],[6,6]].map(([x,y])=>[x*30,y*30]),
-        "ュ": [[2,3],[3,3],[4,3],[4,4],[4,5],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "シ": [[1,0],[6,0],[2,1],[6,1],[1,2],[6,2],[2,3],[6,3],[5,4],[4,5],[1,6],[2,6],[3,6]].map(([x,y])=>[x*30,y*30]),
-        "ブ": [[3,0],[5,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[5,3],[4,4],[3,5],[1,6],[2,6]].map(([x,y])=>[x*30,y*30]),
-        "ヤ": [[2,0],[2,1],[4,1],[5,1],[6,1],[0,2],[1,2],[2,2],[3,2],[6,2],[2,3],[5,3],[3,4],[3,5],[3,6]].map(([x,y])=>[x*30,y*30]),
-        "エ": [[1,1],[2,1],[3,1],[4,1],[5,1],[3,2],[3,3],[3,4],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5]].map(([x,y])=>[x*30,y*30]),
-        "コ": [[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[5,3],[5,4],[5,5],[0,6],[1,6],[2,6],[3,6],[4,6],[5,6]].map(([x,y])=>[x*30,y*30]),
-        "ナ": [[3,0],[3,1],[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[3,3],[3,4],[2,5],[1,6]].map(([x,y])=>[x*30,y*30])
+        "フ": [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [5, 2], [5, 3], [4, 4], [3, 5], [1, 6], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ジ": [[0, 0], [2, 0], [4, 0], [6, 0], [1, 1], [0, 2], [4, 2], [1, 3], [5, 3], [4, 4], [3, 5], [0, 6], [1, 6], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "サ": [[2, 0], [4, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [2, 2], [4, 2], [2, 3], [4, 3], [5, 4], [4, 5], [2, 6], [3, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "キ": [[3, 0], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [3, 2], [3, 3], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [3, 5], [3, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ミ": [[1, 0], [2, 0], [3, 0], [4, 1], [5, 1], [2, 2], [3, 3], [4, 3], [1, 5], [2, 5], [3, 5], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ク": [[2, 0], [2, 1], [3, 1], [4, 1], [5, 1], [1, 2], [5, 2], [0, 3], [6, 3], [4, 4], [3, 5], [1, 6], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "オ": [[4, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [4, 2], [3, 3], [4, 3], [2, 4], [4, 4], [0, 5], [1, 5], [4, 5], [3, 6], [4, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "タ": [[2, 0], [2, 1], [3, 1], [4, 1], [5, 1], [1, 2], [5, 2], [0, 3], [2, 3], [4, 3], [6, 3], [4, 4], [3, 5], [1, 6], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ン": [[1, 0], [2, 1], [6, 2], [6, 3], [5, 4], [4, 5], [1, 6], [2, 6], [3, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ョ": [[1, 2], [2, 2], [3, 2], [4, 2], [4, 3], [2, 4], [3, 4], [4, 4], [4, 5], [1, 6], [2, 6], [3, 6], [4, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ウ": [[2, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [0, 2], [5, 2], [5, 3], [4, 4], [3, 5], [1, 6], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ビ": [[0, 0], [3, 0], [5, 0], [7, 0], [0, 1], [0, 2], [3, 2], [4, 2], [0, 3], [1, 3], [2, 3], [3, 3], [0, 4], [0, 5], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "メ": [[5, 0], [5, 1], [1, 2], [2, 2], [3, 2], [5, 2], [4, 3], [3, 4], [5, 4], [2, 5], [5, 5], [0, 6], [1, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "デ": [[1, 0], [2, 0], [3, 0], [4, 0], [6, 0], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [3, 3], [3, 4], [3, 5], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ト": [[2, 0], [2, 1], [2, 2], [2, 3], [3, 3], [4, 3], [2, 4], [4, 4], [2, 5], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "チ": [[4, 0], [5, 0], [1, 1], [2, 1], [3, 1], [3, 2], [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [3, 4], [3, 5], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ャ": [[2, 2], [2, 3], [3, 3], [4, 3], [5, 3], [2, 4], [5, 4], [2, 5], [5, 5], [3, 6], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "セ": [[2, 0], [2, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [2, 3], [6, 3], [2, 4], [5, 4], [2, 5], [3, 6], [4, 6], [5, 6], [6, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "イ": [[5, 0], [4, 1], [3, 2], [2, 3], [3, 3], [0, 4], [1, 4], [3, 4], [3, 5], [3, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "2": [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, 1], [6, 1], [6, 2], [3, 3], [4, 3], [1, 4], [2, 4], [0, 5], [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "0": [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, 1], [6, 1], [0, 2], [4, 2], [5, 2], [0, 3], [1, 3], [4, 3], [5, 3], [0, 4], [1, 4], [6, 4], [0, 5], [6, 5], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "5": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [0, 3], [5, 3], [5, 4], [0, 5], [5, 5], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ポ": [[3, 0], [5, 0], [3, 1], [4, 1], [6, 1], [0, 2], [1, 2], [2, 2], [3, 2], [5, 2], [3, 3], [1, 4], [3, 4], [5, 4], [0, 5], [3, 5], [6, 5], [2, 6], [3, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ス": [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [5, 2], [4, 3], [4, 4], [2, 5], [3, 5], [5, 5], [0, 6], [1, 6], [6, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ー": [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3]].map(([x, y]) => [x * 30, y * 30]),
+        "ハ": [[2, 1], [4, 1], [2, 2], [5, 2], [2, 3], [5, 3], [1, 4], [6, 4], [1, 5], [6, 5], [0, 6], [6, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ュ": [[2, 3], [3, 3], [4, 3], [4, 4], [4, 5], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "シ": [[1, 0], [6, 0], [2, 1], [6, 1], [1, 2], [6, 2], [2, 3], [6, 3], [5, 4], [4, 5], [1, 6], [2, 6], [3, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ブ": [[3, 0], [5, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [5, 2], [5, 3], [4, 4], [3, 5], [1, 6], [2, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ヤ": [[2, 0], [2, 1], [4, 1], [5, 1], [6, 1], [0, 2], [1, 2], [2, 2], [3, 2], [6, 2], [2, 3], [5, 3], [3, 4], [3, 5], [3, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "エ": [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [3, 2], [3, 3], [3, 4], [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5]].map(([x, y]) => [x * 30, y * 30]),
+        "コ": [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]].map(([x, y]) => [x * 30, y * 30]),
+        "ナ": [[3, 0], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [3, 3], [3, 4], [2, 5], [1, 6]].map(([x, y]) => [x * 30, y * 30])
     };
 
     // ====== 単語リスト（ham.js からコピー） ======
-    let katakanaWords = [
-        ["フ","ジ","サ","キ","ミ","ク"],
-        ["タ","ン","ジ","ョ","ウ","ビ"],
-        ["オ","メ","デ","ト","ウ"]
-    ];
+    // let katakanaWords = [
+    //     ["フ","ジ","サ","キ","ミ","ク"],
+    //     ["タ","ン","ジ","ョ","ウ","ビ"],
+    //     ["オ","メ","デ","ト","ウ"]
+    // ];
 
     // ====== 難易度設定（ham.js と同一） ======
     const difficultySettings = {
@@ -78,43 +78,43 @@
             minSpeed: 5, maxSpeed: 9, speedInterval: 20,
             dropIntervalBase: 400, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg.png',
-            bgImages: ['asset/images/bg01.png','asset/images/bg02.png','asset/images/bg03.png','asset/images/bg04.png','asset/images/bg05.png'],
+            bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
             katakanaWords: [
-                ["フ","ジ","サ","キ","ミ","ク"],
-                ["セ","イ","タ","ン","サ","イ"],
-                ["2","0","2","5"],
-                ["ミ","ク","チ","ャ","ン"],
-                ["オ","タ","ン","ジ","ョ","ウ","ビ"],
-                ["オ","メ","デ","ト","ウ"]
+                ["フ", "ジ", "サ", "キ", "ミ", "ク"],
+                ["セ", "イ", "タ", "ン", "サ", "イ"],
+                ["2", "0", "2", "5"],
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"]
             ]
         },
         2: {
             minSpeed: 4, maxSpeed: 8, speedInterval: 20,
             dropIntervalBase: 600, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg02.png',
-            bgImages: ['asset/images/bg06.png','asset/images/bg07.png','asset/images/bg08.png','asset/images/bg09.png','asset/images/bg10.png'],
+            bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
             katakanaWords: [
-                ["ミ","ク","チ","ャ","ン"],
-                ["オ","タ","ン","ジ","ョ","ウ","ビ"],
-                ["オ","メ","デ","ト","ウ"],
-                ["フ","ジ","サ","キ","ミ","ク"],
-                ["セ","イ","タ","ン","サ","イ"],
-                ["2","0","2","5"]
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"],
+                ["フ", "ジ", "サ", "キ", "ミ", "ク"],
+                ["セ", "イ", "タ", "ン", "サ", "イ"],
+                ["2", "0", "2", "5"]
             ]
         },
         3: {
             minSpeed: 3, maxSpeed: 7, speedInterval: 20,
             dropIntervalBase: 1000, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg03.png',
-            bgImages: ['asset/images/bg11.png','asset/images/bg12.png','asset/images/bg13.png','asset/images/bg14.png','asset/images/bg15.png'],
+            bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
             katakanaWords: [
-                ["ポ","ス","タ","ー","ハ"],
-                ["ト","ウ","キ","ュ","ウ"],
-                ["シ","ブ","ヤ","エ","キ"],
-                ["コ","ウ","ナ","イ"]
+                ["ポ", "ス", "タ", "ー", "ハ"],
+                ["ト", "ウ", "キ", "ュ", "ウ"],
+                ["シ", "ブ", "ヤ", "エ", "キ"],
+                ["コ", "ウ", "ナ", "イ"]
             ]
         }
     };
@@ -140,8 +140,8 @@
     let currentDifficulty = 1;
     let bgImageList = [];
     let shuffledImages = [];
-    const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', ()=>{ stopAllSounds(); document.getElementById('gameOverScreen').style.display='none'; document.getElementById('startScreen').style.display='flex'; try{ document.getElementById('hearts').style.display='none'; }catch(e){} try{ document.getElementById('score').style.display='none'; }catch(e){} try{ document.getElementById('difficultyDisplay').style.display='none'; }catch(e){} });
-    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', ()=>{ stopAllSounds(); document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display='flex'; try{ document.getElementById('hearts').style.display='none'; }catch(e){} try{ document.getElementById('score').style.display='none'; }catch(e){} try{ document.getElementById('difficultyDisplay').style.display='none'; }catch(e){} });
+    const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { stopAllSounds(); document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
+    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
     let inKatakanaEvent = false;
     let katakanaPatternIndex = 0;
 
@@ -150,13 +150,13 @@
     let gameStartTime = Date.now();
 
     // timers & events
-        const retryTop = document.getElementById('retryBtn_top_phaser');
-        if (retryTop) {
-            // create a safe handler that captures the current active scene at click-time and stops sounds
-            const handler = () => { const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null; stopAllSounds(s); if (s) startGame(s); };
-            try { const newNode = retryTop.cloneNode(true); retryTop.parentNode.replaceChild(newNode, retryTop); newNode.addEventListener('click', handler); }
-            catch(e) { retryTop.addEventListener('click', handler); }
-        }
+    const retryTop = document.getElementById('retryBtn_top_phaser');
+    if (retryTop) {
+        // create a safe handler that captures the current active scene at click-time and stops sounds
+        const handler = () => { const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null; stopAllSounds(s); if (s) startGame(s); };
+        try { const newNode = retryTop.cloneNode(true); retryTop.parentNode.replaceChild(newNode, retryTop); newNode.addEventListener('click', handler); }
+        catch (e) { retryTop.addEventListener('click', handler); }
+    }
     let dropTimer = null;
     let eventTimers = [];
 
@@ -178,21 +178,21 @@
         const scene = this;
 
         // create player as image with manual physics-like update
-    // set origin to top-left so x/y represent top-left corner (matches original ham.js coordinates)
-    player = scene.add.image(240, 580, 'player').setDisplaySize(42,50).setOrigin(0,0);
-    player.x = 240; player.y = 580; player.width = 42; player.height = 50; player.dy = 0; player.onGround = true;
+        // set origin to top-left so x/y represent top-left corner (matches original ham.js coordinates)
+        player = scene.add.image(240, 580, 'player').setDisplaySize(42, 50).setOrigin(0, 0);
+        player.x = 240; player.y = 580; player.width = 42; player.height = 50; player.dy = 0; player.onGround = true;
 
         // group for items (no arcade body necessary; we'll move manually)
         itemsGroup = scene.add.group();
 
         // pooling warmup
         for (let i = 0; i < 30; i++) {
-            const img = scene.add.image(-1000, -1000, 'candy').setDisplaySize(30,30).setVisible(false).setOrigin(0,0);
+            const img = scene.add.image(-1000, -1000, 'candy').setDisplaySize(30, 30).setVisible(false).setOrigin(0, 0);
             itemPool.push(img);
         }
 
-    // keyboard: create and store keys for consistent checks
-    scene._keys = scene.input.keyboard.addKeys('W,A,S,D,LEFT,RIGHT,UP,DOWN,SPACE');
+        // keyboard: create and store keys for consistent checks
+        scene._keys = scene.input.keyboard.addKeys('W,A,S,D,LEFT,RIGHT,UP,DOWN,SPACE');
 
         // DOM buttons
         const startBtnEl = document.getElementById('startBtn_phaser');
@@ -205,24 +205,24 @@
             document.getElementById('difficultyModal_phaser').style.display = 'none';
             startGame(scene);
         }));
-    const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); startGame(scene); });
-        const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', ()=>{ document.getElementById('gameOverScreen').style.display='none'; document.getElementById('startScreen').style.display='flex'; });
-        const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', ()=>{ document.getElementById('clearScreen').style.display='none'; document.getElementById('startScreen').style.display='flex'; });
+        const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); startGame(scene); });
+        const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
+        const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
 
         // touch controls
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
         const jumpBtn = document.getElementById('jumpBtn');
-        if (leftBtn) { leftBtn.addEventListener('pointerdown', ()=>{ scene._keys.LEFT.isDown = true; }); leftBtn.addEventListener('pointerup', ()=>{ scene._keys.LEFT.isDown = false; }); }
-        if (rightBtn) { rightBtn.addEventListener('pointerdown', ()=>{ scene._keys.RIGHT.isDown = true; }); rightBtn.addEventListener('pointerup', ()=>{ scene._keys.RIGHT.isDown = false; }); }
-        if (jumpBtn) jumpBtn.addEventListener('pointerdown', ()=>{ if (gameRunning()) playerJump(scene); });
+        if (leftBtn) { leftBtn.addEventListener('pointerdown', () => { scene._keys.LEFT.isDown = true; }); leftBtn.addEventListener('pointerup', () => { scene._keys.LEFT.isDown = false; }); }
+        if (rightBtn) { rightBtn.addEventListener('pointerdown', () => { scene._keys.RIGHT.isDown = true; }); rightBtn.addEventListener('pointerup', () => { scene._keys.RIGHT.isDown = false; }); }
+        if (jumpBtn) jumpBtn.addEventListener('pointerdown', () => { if (gameRunning()) playerJump(scene); });
 
         // initial UI
         updateHearts(); updateScore();
         // bind sound toggle button
         bindSoundToggle();
         // hide sound toggle on initial (start) screen
-        try{ const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; }catch(e){}
+        try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
     }
 
     // helper: is game running
@@ -245,7 +245,7 @@
             if (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
                 playerJump(scene);
             }
-        } catch (e) {}
+        } catch (e) { }
 
         // gravity (units: dy is px per ham.js tick) — apply gravity scaled by delta
         const gravity = 1;
@@ -269,17 +269,17 @@
             const spd = speedLevel * (downKey ? 2 : 1);
             it.y += spd * deltaScale;
 
-                if (it.active && rectsOverlap({ x: player.x, y: player.y, w: player.width, h: player.height }, { x: it.x, y: it.y, w: it.displayWidth, h: it.displayHeight })) {
-                    const type = it.getData('type') || 'candy';
-                    // If player is invincible, bombs should NOT be removed on collision (other items still collected)
-                    if (type === 'bomb' && isInvincible) {
-                        // skip handling so bomb remains in play
-                        continue;
-                    }
-                    handleItemCollision(type);
-                    recycleItem(it);
+            if (it.active && rectsOverlap({ x: player.x, y: player.y, w: player.width, h: player.height }, { x: it.x, y: it.y, w: it.displayWidth, h: it.displayHeight })) {
+                const type = it.getData('type') || 'candy';
+                // If player is invincible, bombs should NOT be removed on collision (other items still collected)
+                if (type === 'bomb' && isInvincible) {
+                    // skip handling so bomb remains in play
                     continue;
                 }
+                handleItemCollision(type);
+                recycleItem(it);
+                continue;
+            }
             if (it.y > 700) recycleItem(it);
         }
 
@@ -289,31 +289,31 @@
     }
 
     // collision helper
-    function rectsOverlap(a,b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+    function rectsOverlap(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
     // item pooling
     function allocateItem(scene, type, x, y, speed) {
         let it = null;
         // reuse from pool
-            if (itemPool.length>0) {
-                it = itemPool.pop();
-                it.setTexture(type);
-                it.setDisplaySize(30,30);
-                it.setOrigin(0,0);
-                it.x = x; it.y = y; it.setVisible(true); it.setActive(true);
-            } else {
-                it = scene.add.image(x,y,type).setDisplaySize(30,30).setOrigin(0,0);
-                itemsGroup.add(it);
-            }
+        if (itemPool.length > 0) {
+            it = itemPool.pop();
+            it.setTexture(type);
+            it.setDisplaySize(30, 30);
+            it.setOrigin(0, 0);
+            it.x = x; it.y = y; it.setVisible(true); it.setActive(true);
+        } else {
+            it = scene.add.image(x, y, type).setDisplaySize(30, 30).setOrigin(0, 0);
+            itemsGroup.add(it);
+        }
         it.setData('type', type);
         if (!itemsGroup.contains(it)) itemsGroup.add(it);
         return it;
     }
 
     function recycleItem(it) {
-        try { it.setVisible(false); it.setActive(false); it.x = -1000; it.y = -1000; } catch(e){}
+        try { it.setVisible(false); it.setActive(false); it.x = -1000; it.y = -1000; } catch (e) { }
         // remove from group if present
-        try { itemsGroup.remove(it); } catch(e){}
+        try { itemsGroup.remove(it); } catch (e) { }
         itemPool.push(it);
     }
 
@@ -323,31 +323,31 @@
             // destroy children in group
             const children = itemsGroup.getChildren().slice();
             children.forEach(ch => {
-                try { ch.destroy(); } catch(e) {}
+                try { ch.destroy(); } catch (e) { }
             });
             // clear group
-            try { itemsGroup.clear(true); } catch(e) {}
-        } catch(e) {}
+            try { itemsGroup.clear(true); } catch (e) { }
+        } catch (e) { }
 
         // destroy pooled images
         try {
-            itemPool.forEach(p => { try { p.destroy(); } catch(e) {} });
-        } catch(e) {}
+            itemPool.forEach(p => { try { p.destroy(); } catch (e) { } });
+        } catch (e) { }
         itemPool = [];
 
         // recreate warmup pool images (same as in create)
         try {
             for (let i = 0; i < 30; i++) {
-                const img = scene.add.image(-1000, -1000, 'candy').setDisplaySize(30,30).setVisible(false).setOrigin(0,0);
+                const img = scene.add.image(-1000, -1000, 'candy').setDisplaySize(30, 30).setVisible(false).setOrigin(0, 0);
                 itemPool.push(img);
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     // spawn logic
     function spawnItem(scene) {
         if (inKatakanaEvent) return;
-        const r = Math.random(); let type = (r<0.4)?'candy':(r<0.8)?'donut':'bomb';
+        const r = Math.random(); let type = (r < 0.4) ? 'candy' : (r < 0.8) ? 'donut' : 'bomb';
         // spawn X so item top-left ranges from 0 to (width - itemWidth)
         const itemW = 30;
         const x = Math.random() * (480 - itemW);
@@ -357,21 +357,21 @@
     function spawnPatternRow(scene) {
         const itemW = 30;
         const cols = Math.floor(480 / itemW);
-        const hole = Math.floor(Math.random()*(cols-2));
-        for (let i=0;i<cols;i++){
-                if (i < hole || i > hole+2) allocateItem(scene,'bomb', i*itemW, -itemW);
-            }
+        const hole = Math.floor(Math.random() * (cols - 2));
+        for (let i = 0; i < cols; i++) {
+            if (i < hole || i > hole + 2) allocateItem(scene, 'bomb', i * itemW, -itemW);
+        }
     }
 
     function spawnKatakanaChar(scene, char, isLastChar) {
         const pattern = katakanaPatterns[char] || [];
         const startX = 240 - 90; // center-ish anchor like original
         // choose random heart position if last char and lives<3
-        let heartIndex = -1; if (isLastChar && lives < 3) heartIndex = Math.floor(Math.random()*pattern.length);
-        pattern.forEach((p, idx)=>{
-            const type = (idx===heartIndex)?'heart':'star';
-                // p[0],p[1] are already multiples of 30; allocate using top-left origin
-                allocateItem(scene, type, startX + p[0], p[1]-100);
+        let heartIndex = -1; if (isLastChar && lives < 3) heartIndex = Math.floor(Math.random() * pattern.length);
+        pattern.forEach((p, idx) => {
+            const type = (idx === heartIndex) ? 'heart' : 'star';
+            // p[0],p[1] are already multiples of 30; allocate using top-left origin
+            allocateItem(scene, type, startX + p[0], p[1] - 100);
         });
     }
 
@@ -386,8 +386,8 @@
                 spawnPatternRow(scene);
                 const t = scene.time.delayedCall(20000, runEvent); eventTimers.push(t);
             } else if (eventPhase % 3 === 2) {
-                let count=0;
-                const int = scene.time.addEvent({ delay:5000, loop:true, callback:()=>{ spawnPatternRow(scene); if(++count>=3) int.remove(false); }});
+                let count = 0;
+                const int = scene.time.addEvent({ delay: 5000, loop: true, callback: () => { spawnPatternRow(scene); if (++count >= 3) int.remove(false); } });
                 eventTimers.push(int);
                 const t = scene.time.delayedCall(20000, runEvent); eventTimers.push(t);
             } else {
@@ -400,18 +400,18 @@
                 const nextChar = () => {
                     if (!gameRunning()) return;
                     if (kidx < chars.length) {
-                        const isLast = (kidx === chars.length-1);
+                        const isLast = (kidx === chars.length - 1);
                         spawnKatakanaChar(scene, chars[kidx], isLast);
                         kidx++;
                         const t = scene.time.delayedCall(2000, nextChar); eventTimers.push(t);
                     } else {
                         inKatakanaEvent = false;
-                        const resetT = scene.time.delayedCall(2000, ()=>{
+                        const resetT = scene.time.delayedCall(2000, () => {
                             resetBackgroundWithFlip();
                             minSpeed += 1; speedLevel = minSpeed; adjustDropRate(true, scene); gameStartTime = Date.now();
                         }); eventTimers.push(resetT);
                         const t = scene.time.delayedCall(10000, runEvent); eventTimers.push(t);
-                        katakanaPatternIndex = (katakanaPatternIndex+1) % setting.katakanaWords.length;
+                        katakanaPatternIndex = (katakanaPatternIndex + 1) % setting.katakanaWords.length;
                     }
                 };
                 nextChar();
@@ -422,7 +422,7 @@
     }
 
     function clearEventTimers() {
-        eventTimers.forEach(t=>{ try{ t.remove(false); }catch(e){} }); eventTimers = [];
+        eventTimers.forEach(t => { try { t.remove(false); } catch (e) { } }); eventTimers = [];
     }
 
     // background flip DOM functions
@@ -437,42 +437,42 @@
         }
         lastUsedImage = img;
         bgLayer.style.transform = 'rotateY(180deg)';
-        setTimeout(()=>{ bgLayer.style.backgroundImage = `url(${img})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+        setTimeout(() => { bgLayer.style.backgroundImage = `url(${img})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
     }
 
     function resetBackgroundWithFlip() {
         const bgLayer = document.getElementById('bgLayer');
         bgLayer.style.transform = 'rotateY(180deg)';
-        setTimeout(()=>{ bgLayer.style.backgroundImage = `url(${(difficultySettings[currentDifficulty]||{}).defaultBg||''})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+        setTimeout(() => { bgLayer.style.backgroundImage = `url(${(difficultySettings[currentDifficulty] || {}).defaultBg || ''})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
     }
 
-    function shuffleArray(a){ const arr = a.slice(); for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+    function shuffleArray(a) { const arr = a.slice(); for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 
     // adjust drop rate
     function adjustDropRate(reset, sceneParam) {
         const scene = sceneParam || game.scene.scenes[0];
         if (!scene) return;
-        if (dropTimer) { try{ dropTimer.remove(false); }catch(e){} dropTimer = null; }
+        if (dropTimer) { try { dropTimer.remove(false); } catch (e) { } dropTimer = null; }
         const setting = difficultySettings[currentDifficulty];
         if (reset) {
-            dropTimer = scene.time.addEvent({ delay: setting.dropIntervalBase, loop:true, callback: ()=> spawnItem(scene) });
+            dropTimer = scene.time.addEvent({ delay: setting.dropIntervalBase, loop: true, callback: () => spawnItem(scene) });
         } else {
             const interval = Math.max(300, setting.dropIntervalBase / Math.max(1, speedLevel));
-            dropTimer = scene.time.addEvent({ delay: interval, loop:true, callback: ()=> spawnItem(scene) });
+            dropTimer = scene.time.addEvent({ delay: interval, loop: true, callback: () => spawnItem(scene) });
         }
     }
 
     // game start / init
     function startGame(scene) {
         // ensure any lingering timers/items from previous run are fully cleared
-        try { if (dropTimer) { try{ dropTimer.remove(false); }catch(e){} dropTimer = null; } } catch(e){}
+        try { if (dropTimer) { try { dropTimer.remove(false); } catch (e) { } dropTimer = null; } } catch (e) { }
         clearEventTimers();
-        try { if (invincibleTimer) { clearTimeout(invincibleTimer); invincibleTimer = null; isInvincible = false; } } catch(e){}
-        try { if (game && game.scene && game.scene.scenes[0] && game.scene.scenes[0]._bgm) { try{ game.scene.scenes[0]._bgm.stop(); }catch(e){} } } catch(e){}
-    // stop any active SFX recorded on the scene (clear/gameover, star, etc.)
-    try { const s = (scene || (game && game.scene && game.scene.scenes[0])); if (s && s._activeSfx) { s._activeSfx.forEach(so => { try{ so.stop && so.stop(); }catch(e){} }); s._activeSfx = []; } } catch(e){}
+        try { if (invincibleTimer) { clearTimeout(invincibleTimer); invincibleTimer = null; isInvincible = false; } } catch (e) { }
+        try { if (game && game.scene && game.scene.scenes[0] && game.scene.scenes[0]._bgm) { try { game.scene.scenes[0]._bgm.stop(); } catch (e) { } } } catch (e) { }
+        // stop any active SFX recorded on the scene (clear/gameover, star, etc.)
+        try { const s = (scene || (game && game.scene && game.scene.scenes[0])); if (s && s._activeSfx) { s._activeSfx.forEach(so => { try { so.stop && so.stop(); } catch (e) { } }); s._activeSfx = []; } } catch (e) { }
         // destroy existing items and rebuild pool
-        try { clearAllItems(scene); } catch(e){}
+        try { clearAllItems(scene); } catch (e) { }
 
         // hide screens
         document.getElementById('startScreen').style.display = 'none';
@@ -487,61 +487,61 @@
 
         // reset state
         score = 0; lives = 3; isInvincible = false; blinkFrame = 0; gameStartTime = Date.now();
-    // clear any remaining items (defensive)
-    try { itemsGroup.getChildren().forEach(it=>recycleItem(it)); } catch(e) {}
+        // clear any remaining items (defensive)
+        try { itemsGroup.getChildren().forEach(it => recycleItem(it)); } catch (e) { }
 
         // reset player position/velocity to initial values (important on restart)
         try {
             if (player) {
                 player.x = 240; player.y = 580; player.dy = 0; player.onGround = true;
             }
-        } catch(e) {}
+        } catch (e) { }
 
-            // show HUD and controls
-            try{ document.getElementById('hearts').style.display = 'flex'; }catch(e){}
-            try{ document.getElementById('score').style.display = 'block'; }catch(e){}
-            try{ document.getElementById('difficultyDisplay').style.display = 'block'; }catch(e){}
-            try{
-                // Show touch controls only on touch-capable devices (mobile/tablet)
-                const controlsEl = document.getElementById('controls');
-                if (controlsEl) {
-                    const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
-                    controlsEl.style.display = isTouch ? 'flex' : 'none';
-                }
-            }catch(e){}
-        try{ const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'block'; }catch(e){}
+        // show HUD and controls
+        try { document.getElementById('hearts').style.display = 'flex'; } catch (e) { }
+        try { document.getElementById('score').style.display = 'block'; } catch (e) { }
+        try { document.getElementById('difficultyDisplay').style.display = 'block'; } catch (e) { }
+        try {
+            // Show touch controls only on touch-capable devices (mobile/tablet)
+            const controlsEl = document.getElementById('controls');
+            if (controlsEl) {
+                const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+                controlsEl.style.display = isTouch ? 'flex' : 'none';
+            }
+        } catch (e) { }
+        try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'block'; } catch (e) { }
 
-    // start drop timer & events
-    // Use non-reset behavior so initial drop interval is scaled by speedLevel (matches ham.js)
-    adjustDropRate(false, scene);
+        // start drop timer & events
+        // Use non-reset behavior so initial drop interval is scaled by speedLevel (matches ham.js)
+        adjustDropRate(false, scene);
         clearEventTimers(); scheduleEvents(scene);
 
         // BGM: only start if not muted and game is running
-        try{
+        try {
             if (!isMuted) {
-                try{ if (scene._bgm) { try{ scene._bgm.stop(); }catch(e){} scene._bgm.destroy && scene._bgm.destroy(); scene._bgm = null; } }catch(e){}
+                try { if (scene._bgm) { try { scene._bgm.stop(); } catch (e) { } scene._bgm.destroy && scene._bgm.destroy(); scene._bgm = null; } } catch (e) { }
                 if (setting.bgmKey) {
-                    try { scene._bgm = scene.sound.add(setting.bgmKey, { loop:true, volume:0.1 }); scene._bgm.play(); } catch(e) {}
+                    try { scene._bgm = scene.sound.add(setting.bgmKey, { loop: true, volume: 0.1 }); scene._bgm.play(); } catch (e) { }
                 }
             }
-        }catch(e){}
+        } catch (e) { }
 
         updateHearts(); updateScore();
     }
 
     function endGame(status) {
         // stop timers
-        if (dropTimer) { try{ dropTimer.remove(false); }catch(e){} dropTimer=null; }
+        if (dropTimer) { try { dropTimer.remove(false); } catch (e) { } dropTimer = null; }
         clearEventTimers();
         // stop bgm
-        try{ const s = game.scene.scenes[0]; if (s._bgm) s._bgm.stop(); }catch(e){}
+        try { const s = game.scene.scenes[0]; if (s._bgm) s._bgm.stop(); } catch (e) { }
 
-            // hide HUD/controls
-            try{ document.getElementById('controls').style.display = 'none'; }catch(e){}
-            try{ document.getElementById('hearts').style.display = 'none'; }catch(e){}
-            try{ document.getElementById('score').style.display = 'none'; }catch(e){}
-            try{ document.getElementById('difficultyDisplay').style.display = 'none'; }catch(e){}
-        try{ const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; }catch(e){}
+        // hide HUD/controls
+        try { document.getElementById('controls').style.display = 'none'; } catch (e) { }
+        try { document.getElementById('hearts').style.display = 'none'; } catch (e) { }
+        try { document.getElementById('score').style.display = 'none'; } catch (e) { }
+        try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { }
+        try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
 
         if (status === 'ゲームクリア！') {
             playSound('clear'); document.getElementById('clearTitle').textContent = '100億点達成！'; document.getElementById('finalClearScore').textContent = 'Score: ' + score; document.getElementById('clearScreen').style.display = 'flex';
@@ -559,7 +559,7 @@
             if (!isInvincible) {
                 lives--; updateHearts(); playSound('damage');
                 if (lives <= 0) { endGame('ゲームオーバー'); return; }
-                isInvincible = true; blinkFrame = 0; if (invincibleTimer) clearTimeout(invincibleTimer); invincibleTimer = setTimeout(()=>{ isInvincible = false; }, 3000);
+                isInvincible = true; blinkFrame = 0; if (invincibleTimer) clearTimeout(invincibleTimer); invincibleTimer = setTimeout(() => { isInvincible = false; }, 3000);
             }
         }
         updateScore();
@@ -571,7 +571,7 @@
     }
 
     function playSound(key) {
-        try{
+        try {
             const s = game.scene.scenes[0];
             if (isMuted) return;
             if (!s) return;
@@ -579,20 +579,20 @@
             let snd = null;
             try {
                 snd = s.sound.add(key, { volume: 0.4 });
-            } catch(e) {
+            } catch (e) {
                 // fallback: try play directly
-                try { s.sound.play(key, { volume: 0.4 }); } catch(e) {}
+                try { s.sound.play(key, { volume: 0.4 }); } catch (e) { }
             }
             if (snd) {
-                try { snd.play(); } catch(e) {}
+                try { snd.play(); } catch (e) { }
                 try {
                     if (!s._activeSfx) s._activeSfx = [];
                     s._activeSfx.push(snd);
                     // remove from list when finished
-                    try { snd.once && snd.once('complete', () => { const idx = s._activeSfx.indexOf(snd); if (idx >= 0) s._activeSfx.splice(idx,1); snd.destroy && snd.destroy(); }); } catch(e){}
-                } catch(e){}
+                    try { snd.once && snd.once('complete', () => { const idx = s._activeSfx.indexOf(snd); if (idx >= 0) s._activeSfx.splice(idx, 1); snd.destroy && snd.destroy(); }); } catch (e) { }
+                } catch (e) { }
             }
-        } catch(e){}
+        } catch (e) { }
     }
 
     // sound toggle binding (DOM)
@@ -609,12 +609,12 @@
                 const running = !!dropTimer; // gameplay indicator
                 if (isMuted) {
                     // Pause BGM and active SFX rather than destroying so we can resume
-                    try { pauseAllSoundsForMute(s); } catch(e){}
+                    try { pauseAllSoundsForMute(s); } catch (e) { }
                 } else {
                     // Unmuted: resume paused sounds if game running; otherwise do nothing
-                    try { resumeAllSounds(s, running); } catch(e){}
+                    try { resumeAllSounds(s, running); } catch (e) { }
                 }
-            } catch(e){}
+            } catch (e) { }
         };
         btn.addEventListener('click', () => { isMuted = !isMuted; applyState(); });
         applyState();
@@ -625,11 +625,11 @@
         try {
             const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
             if (!s) return;
-            try { if (s._bgm) { try{ s._bgm.pause && s._bgm.pause(); }catch(e){} } } catch(e){}
+            try { if (s._bgm) { try { s._bgm.pause && s._bgm.pause(); } catch (e) { } } } catch (e) { }
             if (s._activeSfx && s._activeSfx.length) {
-                s._activeSfx.forEach(so => { try{ so.pause && so.pause(); }catch(e){} });
+                s._activeSfx.forEach(so => { try { so.pause && so.pause(); } catch (e) { } });
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     // Resume paused sounds when unmuting. If BGM didn't exist and game is running, start it from beginning.
@@ -640,20 +640,20 @@
             // Resume BGM if paused
             try {
                 if (s._bgm) {
-                    try { s._bgm.resume && s._bgm.resume(); } catch(e) {}
+                    try { s._bgm.resume && s._bgm.resume(); } catch (e) { }
                 } else if (running) {
                     // if game running and no bgm yet, create and start
                     try {
                         const setting = difficultySettings[currentDifficulty] || {};
-                        if (setting.bgmKey) { s._bgm = s.sound.add(setting.bgmKey, { loop:true, volume:0.1 }); s._bgm.play(); }
-                    } catch(e){}
+                        if (setting.bgmKey) { s._bgm = s.sound.add(setting.bgmKey, { loop: true, volume: 0.1 }); s._bgm.play(); }
+                    } catch (e) { }
                 }
-            } catch(e){}
+            } catch (e) { }
             // Resume SFX
             if (s._activeSfx && s._activeSfx.length) {
-                s._activeSfx.forEach(so => { try{ so.resume && so.resume(); }catch(e){} });
+                s._activeSfx.forEach(so => { try { so.resume && so.resume(); } catch (e) { } });
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     // helper to stop bgm and active sfx for a given scene
@@ -661,58 +661,59 @@
         try {
             const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
             if (!s) return;
-            try { if (s._bgm) { try{ s._bgm.stop(); }catch(e){} try{ s._bgm.destroy && s._bgm.destroy(); }catch(e){} s._bgm = null; } } catch(e){}
+            try { if (s._bgm) { try { s._bgm.stop(); } catch (e) { } try { s._bgm.destroy && s._bgm.destroy(); } catch (e) { } s._bgm = null; } } catch (e) { }
             if (s._activeSfx && s._activeSfx.length) {
-                s._activeSfx.forEach(so => { try{ so.stop && so.stop(); }catch(e){} try{ so.destroy && so.destroy(); }catch(e){} });
+                s._activeSfx.forEach(so => { try { so.stop && so.stop(); } catch (e) { } try { so.destroy && so.destroy(); } catch (e) { } });
                 s._activeSfx = [];
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     function updateHearts() {
         heartsDiv.innerHTML = '';
-        for (let i=0;i<3;i++){ const img = document.createElement('img'); img.src = (i<lives)?IMG_PATHS.heart:IMG_PATHS.heartEmpty; heartsDiv.appendChild(img); }
+        for (let i = 0; i < 3; i++) { const img = document.createElement('img'); img.src = (i < lives) ? IMG_PATHS.heart : IMG_PATHS.heartEmpty; heartsDiv.appendChild(img); }
     }
-    function updateScore(){ scoreDiv.textContent = 'Score: ' + score; }
+    function updateScore() { scoreDiv.textContent = 'Score: ' + score; }
 
     // share button bindings (reuse original share code)
     function bindShareButtons() {
-    // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
-    const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
-    const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
+        // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
+        const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
+        const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
         const gameUrl = encodeURIComponent('https://www.google.com/?hl=ja');
-        const hashtags = ["牡蠣サーモンキャッチゲーム","藤崎団活動報告","藤崎未来生誕祭2025"];
-        const formattedHashtags = hashtags.map(t=>`#${t}`).join(' ');
+        const hashtags = ["牡蠣サーモンキャッチゲーム", "藤崎団活動報告", "藤崎未来生誕祭2025"];
+        const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
         const makeHandler = () => {
-                // build share URLs at click-time so score is current
-                const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
-                const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
-                const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
-                return (e)=>{
-                    // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
-                    try{ if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; }catch(err){}
+            // build share URLs at click-time so score is current
+            const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
+            const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
+            const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
+            return (e) => {
+                // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
+                try { if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; } catch (err) { }
 
-                    const nw = window.open(shareUrlWeb,'_blank');
-                    try{
-                        if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
-                    }catch(e){}
-                };
+                const nw = window.open(shareUrlWeb, '_blank');
+                try {
+                    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
+                } catch (e) { }
             };
+        };
 
-            if (shareBtn) {
-                // use addEventListener so we don't accidentally overwrite other handlers
-                shareBtn.addEventListener('click', makeHandler());
-                if (shareBtn.tagName === 'A') { shareBtn.href = '#'; shareBtn.target = '_blank'; shareBtn.rel = 'noopener noreferrer'; }
-            }
-            if (shareBtnTop) {
-                shareBtnTop.addEventListener('click', makeHandler());
-                if (shareBtnTop.tagName === 'A') { shareBtnTop.href = '#'; shareBtnTop.target = '_blank'; shareBtnTop.rel = 'noopener noreferrer'; }
-            }
+        if (shareBtn) {
+            // use addEventListener so we don't accidentally overwrite other handlers
+            shareBtn.addEventListener('click', makeHandler());
+            if (shareBtn.tagName === 'A') { shareBtn.href = '#'; shareBtn.target = '_blank'; shareBtn.rel = 'noopener noreferrer'; }
+        }
+        if (shareBtnTop) {
+            shareBtnTop.addEventListener('click', makeHandler());
+            if (shareBtnTop.tagName === 'A') { shareBtnTop.href = '#'; shareBtnTop.target = '_blank'; shareBtnTop.rel = 'noopener noreferrer'; }
+        }
     }
 
+
     // --- Splash and warmup helpers ---
-    function createSplashOverlay(imagePath, durationMs, onFinish) {
+    function createSplashOverlay(imagePath, onFinish) {
         try {
             const overlay = document.createElement('div');
             overlay.id = 'phaserSplashOverlay';
@@ -724,7 +725,7 @@
             overlay.style.display = 'flex';
             overlay.style.alignItems = 'center';
             overlay.style.justifyContent = 'center';
-            overlay.style.background = '#000';
+            overlay.style.background = '#f0f0f0'; // 背景は即時表示
             overlay.style.zIndex = '99999';
             overlay.style.cursor = 'pointer';
 
@@ -734,22 +735,46 @@
             img.style.maxWidth = '90%';
             img.style.maxHeight = '90%';
             img.style.objectFit = 'contain';
+            img.style.opacity = '0'; // 最初は透明
+            img.style.transition = 'opacity 3s ease'; // フェードに3秒
             overlay.appendChild(img);
 
             let removed = false;
             const remove = () => {
-                if (removed) return; removed = true;
-                try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch(e) {}
-                try { onFinish && onFinish(); } catch(e) {}
+                if (removed) return;
+                removed = true;
+
+                // フェードアウト開始
+                img.style.opacity = '0';
+
+                // フェードアウト終了後に削除
+                setTimeout(() => {
+                    try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch (e) { }
+                    try { onFinish && onFinish(); } catch (e) { }
+                }, 3000); // フェードアウト時間と合わせる
             };
 
             overlay.addEventListener('click', remove);
-            // auto-dismiss after durationMs if provided
-            if (durationMs && durationMs > 0) setTimeout(remove, durationMs);
+
+            // DOMに追加してからフェードイン開始
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => {
+                img.style.opacity = '1';
+            });
+
+            // フェードイン終了後に3秒待ってフェードアウト開始
+            setTimeout(() => {
+                remove();
+            }, 3000 + 3000); // フェードイン3秒 + 表示3秒 = 6秒後にフェードアウト開始
 
             return overlay;
-        } catch(e) { try { onFinish && onFinish(); } catch(ex){} return null; }
+        } catch (e) {
+            try { onFinish && onFinish(); } catch (ex) { }
+            return null;
+        }
     }
+
+
 
     function warmupResources() {
         try {
@@ -757,13 +782,13 @@
             const setting = difficultySettings[currentDifficulty] || {};
             const urls = [];
             if (setting.defaultBg) urls.push(setting.defaultBg);
-            if (Array.isArray(setting.bgImages)) urls.push(...setting.bgImages.slice(0,3));
+            if (Array.isArray(setting.bgImages)) urls.push(...setting.bgImages.slice(0, 3));
             // core sprites
             urls.push(IMG_PATHS.player);
             urls.push(IMG_PATHS.candy);
 
-            urls.forEach(u => { try { const i = new Image(); i.src = u; } catch(e){} });
-        } catch(e) {}
+            urls.forEach(u => { try { const i = new Image(); i.src = u; } catch (e) { } });
+        } catch (e) { }
     }
 
     function showSplashThenInit() {
@@ -771,19 +796,19 @@
         const splashPath = 'asset/images/start_img.png';
         const overlay = createSplashOverlay(splashPath, 1200, () => {
             // warmup resources in background
-            try { warmupResources(); } catch(e) {}
+            try { warmupResources(); } catch (e) { }
             // After splash removal, bind share buttons and fallback handlers (same as original load handlers)
-            try { bindShareButtons(); } catch(e) {}
+            try { bindShareButtons(); } catch (e) { }
 
             try {
                 const startBtnFallback = document.getElementById('startBtn_phaser');
                 if (startBtnFallback) {
-                    startBtnFallback.addEventListener('click', ()=>{
+                    startBtnFallback.addEventListener('click', () => {
                         const modal = document.getElementById('difficultyModal_phaser');
                         if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
                     });
                 }
-            } catch(e){}
+            } catch (e) { }
 
             try {
                 document.querySelectorAll('.diffBtn_phaser').forEach(btn => {
@@ -796,7 +821,7 @@
                         const tryStart = () => {
                             const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
                             if (s) {
-                                try { startGame(s); } catch(e){}
+                                try { startGame(s); } catch (e) { }
                             } else if (attempts < 10) {
                                 attempts++;
                                 setTimeout(tryStart, 100);
@@ -805,18 +830,18 @@
                         tryStart();
                     });
                 });
-            } catch(e){}
+            } catch (e) { }
         });
 
-        try { if (overlay) document.body.appendChild(overlay); } catch(e) {}
+        try { if (overlay) document.body.appendChild(overlay); } catch (e) { }
     }
 
     // expose startGame to window for manual triggers
-    window.phaserStartGame = function() { const s = game.scene.scenes[0]; if (s) startGame(s); };
+    window.phaserStartGame = function () { const s = game.scene.scenes[0]; if (s) startGame(s); };
 
     // init bind share and fallback UI bindings via splash flow
-    window.addEventListener('load', ()=>{
-        try { showSplashThenInit(); } catch(e) { try { bindShareButtons(); } catch(e){} }
+    window.addEventListener('load', () => {
+        try { showSplashThenInit(); } catch (e) { try { bindShareButtons(); } catch (e) { } }
     });
 
     // export some helper for debugging
