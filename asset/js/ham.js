@@ -530,9 +530,8 @@
     // background flip DOM functions
     function setBackgroundShuffledWithFlip() {
         const bgLayer2 = document.getElementById('bgLayer2');
-        const bgInner = bgLayer2.querySelector('.bg-inner');
         bgLayer2.style.display = "block"; // 演出の時だけ表示
-        bgLayer2.style.zIndex = "2";
+        bgLayer2.style.zIndex = "1";
         const setting = difficultySettings[currentDifficulty];
         let img;
         if (!firstBgUsed) { img = setting.bgFirst; firstBgUsed = true; }
@@ -542,24 +541,24 @@
         }
         lastUsedImage = img;
         bgLayer2.style.transform = 'rotateY(180deg)';
-        setTimeout(() => { bgInner.style.backgroundImage = `url(${img})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+        setTimeout(() => { bgLayer2.style.backgroundImage = `url(${img})`; bgLayer2.style.transform = 'rotateY(360deg)'; }, 300);
 
     }
 
     function resetBackgroundWithFlip() {
         const bgLayer2 = document.getElementById('bgLayer2');
-        const bgInner = bgLayer2.querySelector('.bg-inner');
         bgLayer2.style.display = "block"; // 演出時だけ表示
-        bgLayer2.style.zIndex = "2"; // ←前面に出す
+        bgLayer2.style.zIndex = "1"; // ←前面に出す
         bgLayer2.style.transform = 'rotateY(180deg)';
         setTimeout(() => {
-            bgInner.style.backgroundImage = "url('asset/images/start.png')"; // ←固定に統一
+            bgLayer2.style.backgroundImage = "url('asset/images/t.png')"; // ←固定に統一
             bgLayer2.style.transform = 'rotateY(360deg)';
         }, 300);
         // 終わったら非表示に
         setTimeout(() => {
             bgLayer2.style.display = "none";
             bgLayer2.style.zIndex = "-1"; // ←元に戻す
+            bgLayer2.style.transform = '';
         }, 1000);
     }
 
