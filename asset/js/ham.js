@@ -72,7 +72,7 @@
             dropIntervalBase: 400, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg.png',
             bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
-            bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
+            bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
             katakanaWords: [
                 ["フ", "ジ", "サ", "キ", "ミ", "ク"],
                 ["セ", "イ", "タ", "ン", "サ", "イ"],
@@ -102,7 +102,7 @@
             dropIntervalBase: 1000, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg03.png',
             bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
-            bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
+            bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
             katakanaWords: [
                 ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
                 ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
