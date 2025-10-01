@@ -128,7 +128,6 @@
 
     // ====== 難易度開始時に初期化 ======
     function initBackgroundLoop(difficulty) {
-        console.log("initBackgroundLoopに渡されたdifficulty:", difficulty); 
         const d_setting = difficultySettings[difficulty];
         if (!d_setting) return;
 
@@ -137,7 +136,6 @@
         if (currentBgIndex < 0 || currentBgIndex >= backgroundList.length) {
             currentBgIndex = 0; // 保険
         }
-        console.log(difficulty)
 
         const d_bg1 = document.querySelector('#bgLayer .bg1');
         const d_bg2 = document.querySelector('#bgLayer .bg2');
@@ -282,9 +280,8 @@
         });
 
         document.querySelectorAll('.diffBtn_phaser').forEach(btn => btn.addEventListener('click', (e) => {
-            currentDifficulty = parseInt(e.target.dataset.level);            initBackgroundLoop(currentDifficulty);
+            currentDifficulty = parseInt(e.target.dataset.level);
             initBackgroundLoop(currentDifficulty);
-
             document.getElementById('difficultyModal_phaser').style.display = 'none';
             startGame(scene);
         }));
