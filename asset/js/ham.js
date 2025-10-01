@@ -65,83 +65,6 @@
         "ナ": [[3, 0], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [3, 3], [3, 4], [2, 5], [1, 6]].map(([x, y]) => [x * 30, y * 30])
     };
 
-    // ====== 背景リスト（ループ順固定） ======
-    const backgroundList = [
-        'asset/images/default_bg.png',
-        'asset/images/default_bg02.png',
-        'asset/images/default_bg03.png'
-    ];
-
-    let currentBgIndex = 0;
-    let bgIntervalId = null;
-    let activeLayer = 0; // 0か1を切り替える
-
-    // ====== 難易度開始時に初期化 ======
-    function initBackgroundLoop(difficulty) {
-        const d_setting = difficultySettings[difficulty];
-        if (!d_setting) return;
-
-        const startBg = d_setting.defaultBg;
-        currentBgIndex = backgroundList.indexOf(startBg);
-        if (currentBgIndex === -1) currentBgIndex = 0;
-
-        const d_bg1 = document.querySelector('#bgLayer .bg1');
-        const d_bg2 = document.querySelector('#bgLayer .bg2');
-
-        // 初期化（bg1を表示）
-        d_bg1.style.backgroundImage = `url(${backgroundList[currentBgIndex]})`;
-        d_bg1.classList.add('active');
-        d_bg2.classList.remove('active');
-
-        if (bgIntervalId) clearInterval(bgIntervalId);
-
-        bgIntervalId = setInterval(() => {
-            changeBackgroundWithCrossfade();
-        }, 10000);
-    }
-
-    function changeBackgroundWithCrossfade() {
-        currentBgIndex = (currentBgIndex + 1) % backgroundList.length;
-        const d_nextBg = backgroundList[currentBgIndex];
-
-        const d_bg1 = document.querySelector('#bgLayer .bg1');
-        const d_bg2 = document.querySelector('#bgLayer .bg2');
-
-        const nextLayer = activeLayer === 0 ? d_bg2 : d_bg1;
-        const prevLayer = activeLayer === 0 ? d_bg1 : d_bg2;
-
-        // 次のレイヤーに画像セットしてフェードイン
-        nextLayer.style.backgroundImage = `url(${d_nextBg})`;
-        nextLayer.classList.add('active');
-
-        // 前のレイヤーをフェードアウト
-        prevLayer.classList.remove('active');
-
-        // アクティブレイヤーを切り替え
-        activeLayer = activeLayer === 0 ? 1 : 0;
-    }
-
-    function resetBackgroundLoop() {
-        if (bgIntervalId) {
-            clearInterval(bgIntervalId);
-            bgIntervalId = null;
-        }
-
-        // レイヤーの状態を初期化
-        const d_bg1 = document.querySelector('#bgLayer .bg1');
-        const d_bg2 = document.querySelector('#bgLayer .bg2');
-        if (d_bg1) {
-            d_bg1.style.backgroundImage = '';
-            d_bg1.classList.remove('active');
-        }
-        if (d_bg2) {
-            d_bg2.style.backgroundImage = '';
-            d_bg2.classList.remove('active');
-        }
-
-        currentBgIndex = 0;
-        activeLayer = 0;
-    }
     // ====== 難易度設定（ham.js と同一） ======
     const difficultySettings = {
         1: {
@@ -190,6 +113,92 @@
             ]
         }
     };
+
+    
+    // ====== 背景リスト（ループ順固定） ======
+    const backgroundList = [
+        'asset/images/default_bg.png',
+        'asset/images/default_bg02.png',
+        'asset/images/default_bg03.png'
+    ];
+
+    let currentBgIndex = 0;
+    let bgIntervalId = null;
+    let activeLayer = 0; // 0か1を切り替える
+
+    // ====== 難易度開始時に初期化 ======
+    function initBackgroundLoop(difficulty) {
+        console.log("initBackgroundLoopに渡されたdifficulty:", difficulty); 
+        const d_setting = difficultySettings[difficulty];
+        if (!d_setting) return;
+
+        // 難易度から開始インデックスを決定（1→0, 2→1, 3→2）
+        currentBgIndex = difficulty - 1;
+        if (currentBgIndex < 0 || currentBgIndex >= backgroundList.length) {
+            currentBgIndex = 0; // 保険
+        }
+        console.log(difficulty)
+
+        const d_bg1 = document.querySelector('#bgLayer .bg1');
+        const d_bg2 = document.querySelector('#bgLayer .bg2');
+
+        // 初期化（bg1を表示）
+        d_bg1.style.backgroundImage = `url(${backgroundList[currentBgIndex]})`;
+        d_bg1.classList.add('active');
+        d_bg2.classList.remove('active');
+
+        activeLayer = 0;
+
+        if (bgIntervalId) { clearInterval(bgIntervalId); bgIntervalId = null; }
+
+
+        bgIntervalId = setInterval(() => {
+            changeBackgroundWithCrossfade();
+        }, 10000);
+    }
+
+    function changeBackgroundWithCrossfade() {
+        currentBgIndex = (currentBgIndex + 1) % backgroundList.length;
+        const d_nextBg = backgroundList[currentBgIndex];
+
+        const d_bg1 = document.querySelector('#bgLayer .bg1');
+        const d_bg2 = document.querySelector('#bgLayer .bg2');
+
+        const nextLayer = activeLayer === 0 ? d_bg2 : d_bg1;
+        const prevLayer = activeLayer === 0 ? d_bg1 : d_bg2;
+
+        // 次のレイヤーに画像セットしてフェードイン
+        nextLayer.style.backgroundImage = `url(${d_nextBg})`;
+        nextLayer.classList.add('active');
+
+        // 前のレイヤーをフェードアウト
+        prevLayer.classList.remove('active');
+
+        // アクティブレイヤーを切り替え
+        activeLayer = activeLayer === 0 ? 1 : 0;
+    }
+
+    function resetBackgroundLoop() {
+        if (bgIntervalId) {
+            clearInterval(bgIntervalId);
+            bgIntervalId = null;
+        }
+
+        // レイヤーの状態を初期化
+        const d_bg1 = document.querySelector('#bgLayer .bg1');
+        const d_bg2 = document.querySelector('#bgLayer .bg2');
+        if (d_bg1) {
+            d_bg1.style.backgroundImage = '';
+            d_bg1.classList.remove('active');
+        }
+        if (d_bg2) {
+            d_bg2.style.backgroundImage = '';
+            d_bg2.classList.remove('active');
+        }
+
+        currentBgIndex = 0;
+        activeLayer = 0;
+    }
 
     // ====== Phaser 設定 ======
     const config = {
@@ -273,8 +282,9 @@
         });
 
         document.querySelectorAll('.diffBtn_phaser').forEach(btn => btn.addEventListener('click', (e) => {
+            currentDifficulty = parseInt(e.target.dataset.level);            initBackgroundLoop(currentDifficulty);
             initBackgroundLoop(currentDifficulty);
-            currentDifficulty = parseInt(e.target.dataset.level);
+
             document.getElementById('difficultyModal_phaser').style.display = 'none';
             startGame(scene);
         }));
