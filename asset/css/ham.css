@@ -460,7 +460,17 @@ img {
         height: 3vh;
         font-size: 3.2vh;
     }
-
+.svg-icon {
+    width: 9vh;
+    height: 9vh;
+}
+.svg-icon svg {
+    width: 5vh;
+    height: 5vh;
+}
+.btn-sns {
+    padding: 3vh;
+}
     h1+p,
     h2+p,
     .btn,
@@ -537,6 +547,14 @@ img {
         width: 5vw;
         height: 5vw;
     }
+.svg-icon {
+    width: 9vw;
+    height: 9vw;
+}
+.svg-icon svg {
+    width: 5vw;
+    height: 5vw;
+}
 
     h1+p,
     h2+p,
