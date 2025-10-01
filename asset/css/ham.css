@@ -223,7 +223,7 @@ canvas {
 
 #controls {
     position: absolute;
-    bottom: 20px;
+    bottom: 10vh;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -275,7 +275,7 @@ canvas {
     height: 3em;
     font-size: 20px;
     border-radius: 5px;
-    margin-top: 10px;
+    margin-top: .5em;
     cursor: pointer;
     transition: opacity 0.3s ease;
     user-select: none;
@@ -402,15 +402,32 @@ h1 {
 
 }
 
+p.img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+p.img img {
+    width: 100%;
+}
+
+img {
+	image-rendering: -webkit-optimize-contrast;
+    backface-visibility: hidden;
+-webkit-backface-visibility: hidden;
+}
+
+
 @media (max-height: 639px) {
     #main .main_wrap {
         height: 100%;
         width: auto;
-        min-height: 350px;
+        /* min-height: 350px; */
     }
 
     h1 {
-        font-size: 3.5vh;
+        font-size: 5vh;
     }
 
     h2 {
@@ -432,17 +449,11 @@ h1 {
     h2+p,
     .btn,
     #score,
+    #finalScore,
+    #finalClearScore,
     #difficultyDisplay,
     .x_share {
         font-size: 3vh;
-    }
-
-    p.img {
-        text-align: center;
-    }
-
-    p.img img {
-        width: 80%;
     }
 
     .modal {
@@ -457,13 +468,16 @@ h1 {
     #difficultyDisplay {
         left: 40%;
     }
+    #gameOverScreen h1 + .img img {
+        max-width: 20vh;
+    }
 }
 
 @media (max-width: 479px) {
     #main .main_wrap {
         margin: 0 auto auto;
         max-height: none;
-        height: auto;
+        /* height: auto; */
         aspect-ratio: 3 / 4;
     }
 
@@ -475,13 +489,15 @@ h1 {
     #startScreen img,
     #gameOverScreen img,
     #clearScreen img {
-        width: 70%;
         display: block;
         margin: 0 auto;
     }
 
     h1 {
         font-size: 7vw;
+    }
+    #gameOverScreen h1 + .img img {
+        max-width: 30vw;
     }
 
     h2 {
@@ -502,7 +518,9 @@ h1 {
     h1+p,
     h2+p,
     .btn,
+    #finalScore
     #score,
+    #finalClearScore,
     #difficultyDisplay,
     .x_share {
         font-size: 3.5vw;
