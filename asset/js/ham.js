@@ -807,157 +807,33 @@
         const hashtags = ["牡蠣サーモンキャッチゲーム", "藤崎団活動報告", "藤崎未来生誕祭2025"];
         const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
-        const makeHandler = () => {
-            // build share URLs at click-time so score is current
-            const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
-            const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
-            const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
-            return (e) => {
-                // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
-                try { if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; } catch (err) { }
+        const shareHandler = (e) => { // クリック時に実行される関数を定義
+        // クリック時にscore変数を参照する
+        const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
+        const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
+        const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
 
-                const nw = window.open(shareUrlWeb, '_blank');
-                try {
-                    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
-                } catch (e) { }
-            };
-        };
+        // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
+        try { if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; } catch (err) { }
+
+        const nw = window.open(shareUrlWeb, '_blank');
+        try {
+            if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
+        } catch (e) { }
+    };
 
         if (shareBtn) {
             // use addEventListener so we don't accidentally overwrite other handlers
-            shareBtn.addEventListener('click', makeHandler());
+            shareBtn.addEventListener('click', shareHandler);
             if (shareBtn.tagName === 'A') { shareBtn.href = '#'; shareBtn.target = '_blank'; shareBtn.rel = 'noopener noreferrer'; }
         }
         if (shareBtnTop) {
-            shareBtnTop.addEventListener('click', makeHandler());
+            shareBtnTop.addEventListener('click', shareHandler);
             if (shareBtnTop.tagName === 'A') { shareBtnTop.href = '#'; shareBtnTop.target = '_blank'; shareBtnTop.rel = 'noopener noreferrer'; }
         }
     }
 
 
-    // --- Splash and warmup helpers ---
-    // function createSplashOverlay(imagePath, onFinish) {
-    //     try {
-    //         const overlay = document.createElement('div');
-    //         overlay.id = 'phaserSplashOverlay';
-    //         overlay.style.position = 'fixed';
-    //         overlay.style.left = '0';
-    //         overlay.style.top = '0';
-    //         overlay.style.width = '100%';
-    //         overlay.style.height = '100%';
-    //         overlay.style.display = 'flex';
-    //         overlay.style.alignItems = 'center';
-    //         overlay.style.justifyContent = 'center';
-    //         overlay.style.background = '#f0f0f0'; // 背景は即時表示
-    //         overlay.style.zIndex = '99999';
-    //         overlay.style.cursor = 'pointer';
-
-    //         const img = document.createElement('img');
-    //         img.src = imagePath || 'asset/images/splash.png';
-    //         img.alt = 'splash';
-    //         img.style.maxWidth = '90%';
-    //         img.style.maxHeight = '90%';
-    //         img.style.objectFit = 'contain';
-    //         img.style.opacity = '0'; // 最初は透明
-    //         img.style.transition = 'opacity 3s ease'; // フェードに3秒
-    //         overlay.appendChild(img);
-
-    //         let removed = false;
-    //         const remove = () => {
-    //             if (removed) return;
-    //             removed = true;
-
-    //             // フェードアウト開始
-    //             img.style.opacity = '0';
-
-    //             // フェードアウト終了後に削除
-    //             setTimeout(() => {
-    //                 try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch (e) { }
-    //                 try { onFinish && onFinish(); } catch (e) { }
-    //             }, 3000); // フェードアウト時間と合わせる
-    //         };
-
-    //         overlay.addEventListener('click', remove);
-
-    //         // DOMに追加してからフェードイン開始
-    //         document.body.appendChild(overlay);
-    //         requestAnimationFrame(() => {
-    //             img.style.opacity = '1';
-    //         });
-
-    //         // フェードイン終了後に3秒待ってフェードアウト開始
-    //         setTimeout(() => {
-    //             remove();
-    //         }, 3000 + 2000); // フェードイン3秒 + 表示3秒 = 6秒後にフェードアウト開始
-
-    //         return overlay;
-    //     } catch (e) {
-    //         try { onFinish && onFinish(); } catch (ex) { }
-    //         return null;
-    //     }
-    // }
-
-
-
-    // function warmupResources() {
-    //     try {
-    //         // Warmup a small set of images to reduce first-frame work
-    //         const setting = difficultySettings[currentDifficulty] || {};
-    //         const urls = [];
-    //         if (setting.defaultBg) urls.push(setting.defaultBg);
-    //         if (Array.isArray(setting.bgImages)) urls.push(...setting.bgImages.slice(0, 3));
-    //         // core sprites
-    //         urls.push(IMG_PATHS.player);
-    //         urls.push(IMG_PATHS.candy);
-
-    //         urls.forEach(u => { try { const i = new Image(); i.src = u; } catch (e) { } });
-    //     } catch (e) { }
-    // }
-
-    // function showSplashThenInit() {
-    //     // Prefer a user-provided splash image; fallback to splash.png
-    //     const splashPath = 'asset/images/splash.png';
-    //     const overlay = createSplashOverlay(splashPath, 1200, () => {
-    //         // warmup resources in background
-    //         try { warmupResources(); } catch (e) { }
-    //         // After splash removal, bind share buttons and fallback handlers (same as original load handlers)
-    //         try { bindShareButtons(); } catch (e) { }
-
-    //         try {
-    //             const startBtnFallback = document.getElementById('startBtn_phaser');
-    //             if (startBtnFallback) {
-    //                 startBtnFallback.addEventListener('click', () => {
-    //                     const modal = document.getElementById('difficultyModal_phaser');
-    //                     if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
-    //                 });
-    //             }
-    //         } catch (e) { }
-
-    //         try {
-    //             document.querySelectorAll('.diffBtn_phaser').forEach(btn => {
-    //                 btn.addEventListener('click', (e) => {
-    //                     const lvl = parseInt(e.currentTarget.dataset.level);
-    //                     currentDifficulty = lvl;
-    //                     const modal = document.getElementById('difficultyModal_phaser'); if (modal) modal.style.display = 'none';
-
-    //                     let attempts = 0;
-    //                     const tryStart = () => {
-    //                         const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
-    //                         if (s) {
-    //                             try { startGame(s); } catch (e) { }
-    //                         } else if (attempts < 10) {
-    //                             attempts++;
-    //                             setTimeout(tryStart, 100);
-    //                         }
-    //                     };
-    //                     tryStart();
-    //                 });
-    //             });
-    //         } catch (e) { }
-    //     });
-
-    //     try { if (overlay) document.body.appendChild(overlay); } catch (e) { }
-    // }
 
     // expose startGame to window for manual triggers
     window.phaserStartGame = function () { const s = game.scene.scenes[0]; if (s) startGame(s); };
