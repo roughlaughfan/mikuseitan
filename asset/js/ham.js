@@ -65,6 +65,83 @@
         "ナ": [[3, 0], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [3, 3], [3, 4], [2, 5], [1, 6]].map(([x, y]) => [x * 30, y * 30])
     };
 
+    // ====== 背景リスト（ループ順固定） ======
+    const backgroundList = [
+        'asset/images/default_bg.png',
+        'asset/images/default_bg02.png',
+        'asset/images/default_bg03.png'
+    ];
+
+    let currentBgIndex = 0;
+    let bgIntervalId = null;
+    let activeLayer = 0; // 0か1を切り替える
+
+    // ====== 難易度開始時に初期化 ======
+    function initBackgroundLoop(difficulty) {
+        const d_setting = difficultySettings[difficulty];
+        if (!d_setting) return;
+
+        const startBg = d_setting.defaultBg;
+        currentBgIndex = backgroundList.indexOf(startBg);
+        if (currentBgIndex === -1) currentBgIndex = 0;
+
+        const d_bg1 = document.querySelector('#bgLayer .bg1');
+        const d_bg2 = document.querySelector('#bgLayer .bg2');
+
+        // 初期化（bg1を表示）
+        d_bg1.style.backgroundImage = `url(${backgroundList[currentBgIndex]})`;
+        d_bg1.classList.add('active');
+        d_bg2.classList.remove('active');
+
+        if (bgIntervalId) clearInterval(bgIntervalId);
+
+        bgIntervalId = setInterval(() => {
+            changeBackgroundWithCrossfade();
+        }, 10000);
+    }
+
+    function changeBackgroundWithCrossfade() {
+        currentBgIndex = (currentBgIndex + 1) % backgroundList.length;
+        const d_nextBg = backgroundList[currentBgIndex];
+
+        const d_bg1 = document.querySelector('#bgLayer .bg1');
+        const d_bg2 = document.querySelector('#bgLayer .bg2');
+
+        const nextLayer = activeLayer === 0 ? d_bg2 : d_bg1;
+        const prevLayer = activeLayer === 0 ? d_bg1 : d_bg2;
+
+        // 次のレイヤーに画像セットしてフェードイン
+        nextLayer.style.backgroundImage = `url(${d_nextBg})`;
+        nextLayer.classList.add('active');
+
+        // 前のレイヤーをフェードアウト
+        prevLayer.classList.remove('active');
+
+        // アクティブレイヤーを切り替え
+        activeLayer = activeLayer === 0 ? 1 : 0;
+    }
+
+    function resetBackgroundLoop() {
+        if (bgIntervalId) {
+            clearInterval(bgIntervalId);
+            bgIntervalId = null;
+        }
+
+        // レイヤーの状態を初期化
+        const d_bg1 = document.querySelector('#bgLayer .bg1');
+        const d_bg2 = document.querySelector('#bgLayer .bg2');
+        if (d_bg1) {
+            d_bg1.style.backgroundImage = '';
+            d_bg1.classList.remove('active');
+        }
+        if (d_bg2) {
+            d_bg2.style.backgroundImage = '';
+            d_bg2.classList.remove('active');
+        }
+
+        currentBgIndex = 0;
+        activeLayer = 0;
+    }
     // ====== 難易度設定（ham.js と同一） ======
     const difficultySettings = {
         1: {
@@ -135,8 +212,8 @@
     let currentDifficulty = 1;
     let bgImageList = [];
     let shuffledImages = [];
-    const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { stopAllSounds(); document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
-    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
+    const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
+    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
     let inKatakanaEvent = false;
     let katakanaPatternIndex = 0;
 
@@ -148,7 +225,7 @@
     const retryTop = document.getElementById('retryBtn_top_phaser');
     if (retryTop) {
         // create a safe handler that captures the current active scene at click-time and stops sounds
-        const handler = () => { const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null; stopAllSounds(s); if (s) startGame(s); };
+        const handler = () => { const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null; stopAllSounds(s); resetBackgroundLoop(); if (s) startGame(s); };
         try { const newNode = retryTop.cloneNode(true); retryTop.parentNode.replaceChild(newNode, retryTop); newNode.addEventListener('click', handler); }
         catch (e) { retryTop.addEventListener('click', handler); }
     }
@@ -196,11 +273,12 @@
         });
 
         document.querySelectorAll('.diffBtn_phaser').forEach(btn => btn.addEventListener('click', (e) => {
+            initBackgroundLoop(currentDifficulty);
             currentDifficulty = parseInt(e.target.dataset.level);
             document.getElementById('difficultyModal_phaser').style.display = 'none';
             startGame(scene);
         }));
-        const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); startGame(scene); });
+        const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); resetBackgroundLoop(); startGame(scene); });
         const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
         const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
 
@@ -240,7 +318,7 @@
                 if (gameRunning()) playerJump(scene);
             });
         }
-        
+
         // initial UI
         updateHearts(); updateScore();
         // bind sound toggle button
@@ -451,7 +529,10 @@
 
     // background flip DOM functions
     function setBackgroundShuffledWithFlip() {
-        const bgLayer = document.getElementById('bgLayer');
+        const bgLayer2 = document.getElementById('bgLayer2');
+        const bgInner = bgLayer2.querySelector('.bg-inner');
+        bgLayer2.style.display = "block"; // 演出の時だけ表示
+        bgLayer2.style.zIndex = "2";
         const setting = difficultySettings[currentDifficulty];
         let img;
         if (!firstBgUsed) { img = setting.bgFirst; firstBgUsed = true; }
@@ -460,14 +541,26 @@
             img = shuffledImages.shift();
         }
         lastUsedImage = img;
-        bgLayer.style.transform = 'rotateY(180deg)';
-        setTimeout(() => { bgLayer.style.backgroundImage = `url(${img})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+        bgLayer2.style.transform = 'rotateY(180deg)';
+        setTimeout(() => { bgInner.style.backgroundImage = `url(${img})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+
     }
 
     function resetBackgroundWithFlip() {
-        const bgLayer = document.getElementById('bgLayer');
-        bgLayer.style.transform = 'rotateY(180deg)';
-        setTimeout(() => { bgLayer.style.backgroundImage = `url(${(difficultySettings[currentDifficulty] || {}).defaultBg || ''})`; bgLayer.style.transform = 'rotateY(360deg)'; }, 300);
+        const bgLayer2 = document.getElementById('bgLayer2');
+        const bgInner = bgLayer2.querySelector('.bg-inner');
+        bgLayer2.style.display = "block"; // 演出時だけ表示
+        bgLayer2.style.zIndex = "2"; // ←前面に出す
+        bgLayer2.style.transform = 'rotateY(180deg)';
+        setTimeout(() => {
+            bgInner.style.backgroundImage = "url('asset/images/start.png')"; // ←固定に統一
+            bgLayer2.style.transform = 'rotateY(360deg)';
+        }, 300);
+        // 終わったら非表示に
+        setTimeout(() => {
+            bgLayer2.style.display = "none";
+            bgLayer2.style.zIndex = "-1"; // ←元に戻す
+        }, 1000);
     }
 
     function shuffleArray(a) { const arr = a.slice(); for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
@@ -800,20 +893,20 @@
 
 
 
-    function warmupResources() {
-        try {
-            // Warmup a small set of images to reduce first-frame work
-            const setting = difficultySettings[currentDifficulty] || {};
-            const urls = [];
-            if (setting.defaultBg) urls.push(setting.defaultBg);
-            if (Array.isArray(setting.bgImages)) urls.push(...setting.bgImages.slice(0, 3));
-            // core sprites
-            urls.push(IMG_PATHS.player);
-            urls.push(IMG_PATHS.candy);
+    // function warmupResources() {
+    //     try {
+    //         // Warmup a small set of images to reduce first-frame work
+    //         const setting = difficultySettings[currentDifficulty] || {};
+    //         const urls = [];
+    //         if (setting.defaultBg) urls.push(setting.defaultBg);
+    //         if (Array.isArray(setting.bgImages)) urls.push(...setting.bgImages.slice(0, 3));
+    //         // core sprites
+    //         urls.push(IMG_PATHS.player);
+    //         urls.push(IMG_PATHS.candy);
 
-            urls.forEach(u => { try { const i = new Image(); i.src = u; } catch (e) { } });
-        } catch (e) { }
-    }
+    //         urls.forEach(u => { try { const i = new Image(); i.src = u; } catch (e) { } });
+    //     } catch (e) { }
+    // }
 
     // function showSplashThenInit() {
     //     // Prefer a user-provided splash image; fallback to splash.png

@@ -57,20 +57,43 @@ canvas {
     background: transparent !important;
 }
 
-#bgLayer {
+#bgLayer , #bgLayer2 {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /*background-image: url("../images/default_bg.png");*/
-    background-size: cover;
-    background-position: center;
+    overflow: hidden;
+    z-index: 0;
+  background-size: cover;
+  background-position: center;
+}
+#bgLayer2 {
     transition: transform 0.6s ease;
     transform-style: preserve-3d;
-    backface-visibility: hidden;
-    z-index: 0;
-    /* place behind canvas */
+    z-index: -1;
+}
+#bgLayer2 .bg-inner {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transform: scaleX(-1); /* ←裏返しを打ち消す */
+}
+#bgLayer .bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+
+#bgLayer .bg.active {
+  opacity: 1;
 }
 
 #startScreen,
@@ -413,9 +436,9 @@ p.img img {
 }
 
 img {
-	image-rendering: -webkit-optimize-contrast;
+    image-rendering: -webkit-optimize-contrast;
     backface-visibility: hidden;
--webkit-backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 
@@ -468,7 +491,8 @@ img {
     #difficultyDisplay {
         left: 40%;
     }
-    #gameOverScreen h1 + .img img {
+
+    #gameOverScreen h1+.img img {
         max-width: 20vh;
     }
 }
@@ -496,7 +520,8 @@ img {
     h1 {
         font-size: 7vw;
     }
-    #gameOverScreen h1 + .img img {
+
+    #gameOverScreen h1+.img img {
         max-width: 30vw;
     }
 
@@ -515,14 +540,21 @@ img {
         font-size: 4vw;
     }
 
+    #hearts img {
+        width: 5vw;
+        height: 5vw;
+    }
+
     h1+p,
     h2+p,
     .btn,
-    #finalScore
-    #score,
+    #finalScore, #score,
     #finalClearScore,
     #difficultyDisplay,
     .x_share {
         font-size: 3.5vw;
     }
+       #difficultyDisplay{
+        left: 30vw;
+       }
 }
