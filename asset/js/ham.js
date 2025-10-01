@@ -346,9 +346,19 @@
         // horizontal movement: scale by delta/30 to match ham.js per-tick motion
         const deltaScale = delta / 30;
         const movePerTick = 5; // pixels per ham.js tick
-        if ((keys.LEFT && keys.LEFT.isDown) || (keys.A && keys.A.isDown)) player.x = Math.max(0, player.x - movePerTick * deltaScale);
-        if ((keys.RIGHT && keys.RIGHT.isDown) || (keys.D && keys.D.isDown)) player.x = Math.min(480 - player.width, player.x + movePerTick * deltaScale);
+        let moved = false;
 
+        if ((keys.LEFT && keys.LEFT.isDown) || (keys.A && keys.A.isDown)) {
+            player.x = Math.max(0, player.x - movePerTick * deltaScale);
+            player.flipX = false; // 左向きに設定
+            moved = true;
+        }
+
+        if ((keys.RIGHT && keys.RIGHT.isDown) || (keys.D && keys.D.isDown)) {
+            player.x = Math.min(480 - player.width, player.x + movePerTick * deltaScale);
+            player.flipX = true; // 右向きに設定 (反転)
+            moved = true;
+        }
         // jump detection (single-press) — UP / W / SPACE
         try {
             if (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
@@ -577,16 +587,16 @@
         if (!scene) return;
         if (dropTimer) { try { dropTimer.remove(false); } catch (e) { } dropTimer = null; }
         const setting = difficultySettings[currentDifficulty];
-                // resetがtrue (startGameからのリスタート) の場合は minSpeed/speedLevel を初期値として使う
-        const currentSpeedLevel = Math.max(1, speedLevel); 
-        
+        // resetがtrue (startGameからのリスタート) の場合は minSpeed/speedLevel を初期値として使う
+        const currentSpeedLevel = Math.max(1, speedLevel);
+
         // interval の計算を統一 (reset=true の場合も速度を反映)
-        const interval = Math.max(300, setting.dropIntervalBase / currentSpeedLevel); 
-        
-        dropTimer = scene.time.addEvent({ 
-            delay: interval, 
-            loop: true, 
-            callback: () => spawnItem(scene) 
+        const interval = Math.max(300, setting.dropIntervalBase / currentSpeedLevel);
+
+        dropTimer = scene.time.addEvent({
+            delay: interval,
+            loop: true,
+            callback: () => spawnItem(scene)
         });
     }
 
