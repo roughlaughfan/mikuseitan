@@ -577,12 +577,17 @@
         if (!scene) return;
         if (dropTimer) { try { dropTimer.remove(false); } catch (e) { } dropTimer = null; }
         const setting = difficultySettings[currentDifficulty];
-        if (reset) {
-            dropTimer = scene.time.addEvent({ delay: setting.dropIntervalBase, loop: true, callback: () => spawnItem(scene) });
-        } else {
-            const interval = Math.max(300, setting.dropIntervalBase / Math.max(1, speedLevel));
-            dropTimer = scene.time.addEvent({ delay: interval, loop: true, callback: () => spawnItem(scene) });
-        }
+                // resetがtrue (startGameからのリスタート) の場合は minSpeed/speedLevel を初期値として使う
+        const currentSpeedLevel = Math.max(1, speedLevel); 
+        
+        // interval の計算を統一 (reset=true の場合も速度を反映)
+        const interval = Math.max(300, setting.dropIntervalBase / currentSpeedLevel); 
+        
+        dropTimer = scene.time.addEvent({ 
+            delay: interval, 
+            loop: true, 
+            callback: () => spawnItem(scene) 
+        });
     }
 
     // game start / init
@@ -620,6 +625,7 @@
 
         // reset state
         score = 0; lives = 3; isInvincible = false; blinkFrame = 0; gameStartTime = Date.now();
+        inKatakanaEvent = false;
         // clear any remaining items (defensive)
         try { itemsGroup.getChildren().forEach(it => recycleItem(it)); } catch (e) { }
 
