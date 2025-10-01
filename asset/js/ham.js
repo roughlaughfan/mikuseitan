@@ -114,7 +114,7 @@
         }
     };
 
-    
+
     // ====== 背景リスト（ループ順固定） ======
     const backgroundList = [
         'asset/images/default_bg.png',
@@ -608,6 +608,16 @@
         bgImageList = setting.bgImages.slice(); shuffledImages = shuffleArray(bgImageList); firstBgUsed = false; katakanaWords = setting.katakanaWords; katakanaPatternIndex = 0;
         document.getElementById('bgLayer').style.backgroundImage = `url(${setting.defaultBg})`;
 
+        // 特殊イベント用背景(bgLayer2)のリセット処理
+        const bgLayer2 = document.getElementById('bgLayer2');
+        if (bgLayer2) {
+            bgLayer2.style.display = "none";
+            bgLayer2.style.zIndex = "-1";
+            bgLayer2.style.backgroundImage = "url('asset/images/t.png')"; // resetBackgroundWithFlipで設定されているデフォルトに戻す
+            bgLayer2.style.transform = '';
+        }
+
+
         // reset state
         score = 0; lives = 3; isInvincible = false; blinkFrame = 0; gameStartTime = Date.now();
         // clear any remaining items (defensive)
@@ -808,19 +818,19 @@
         const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
         const shareHandler = (e) => { // クリック時に実行される関数を定義
-        // クリック時にscore変数を参照する
-        const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
-        const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
-        const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
+            // クリック時にscore変数を参照する
+            const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
+            const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
+            const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
 
-        // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
-        try { if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; } catch (err) { }
+            // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
+            try { if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; } catch (err) { }
 
-        const nw = window.open(shareUrlWeb, '_blank');
-        try {
-            if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
-        } catch (e) { }
-    };
+            const nw = window.open(shareUrlWeb, '_blank');
+            try {
+                if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
+            } catch (e) { }
+        };
 
         if (shareBtn) {
             // use addEventListener so we don't accidentally overwrite other handlers
