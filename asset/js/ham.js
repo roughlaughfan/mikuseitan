@@ -646,7 +646,7 @@
 
         // start drop timer & events
         // Use non-reset behavior so initial drop interval is scaled by speedLevel (matches ham.js)
-        adjustDropRate(false, scene);
+        adjustDropRate(true, scene); // 既存のタイマーをリセット（再生成）する挙動を強制する
         clearEventTimers(); scheduleEvents(scene);
 
         // BGM: only start if not muted and game is running
