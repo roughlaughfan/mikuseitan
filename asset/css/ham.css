@@ -210,8 +210,8 @@ canvas {
 #splash-screen img {
     width: auto;
     height: auto;
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 50vw;
+    max-height: 50vh;
     animation: fade-in 3s;
     animation-fill-mode: forwards;
 }
