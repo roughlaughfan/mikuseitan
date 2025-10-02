@@ -114,7 +114,6 @@
         }
     };
 
-
     // ====== 背景リスト（ループ順固定） ======
     const backgroundList = [
         'asset/images/default_bg.png',
@@ -125,6 +124,8 @@
     let currentBgIndex = 0;
     let bgIntervalId = null;
     let activeLayer = 0; // 0か1を切り替える
+    let savedBackgroundState = null; // { bg1, bg2, activeLayer, currentBgIndex }
+
 
     // ====== 難易度開始時に初期化 ======
     function initBackgroundLoop(difficulty) {
@@ -154,6 +155,13 @@
             changeBackgroundWithCrossfade();
         }, 10000);
     }
+
+    // ====== 一時停止からの復帰用 ======
+    function resumeBackgroundLoop() {
+        if (bgIntervalId) return; // 既に動いていれば何もしない
+        bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
+    }
+
 
     function changeBackgroundWithCrossfade() {
         currentBgIndex = (currentBgIndex + 1) % backgroundList.length;
@@ -197,6 +205,7 @@
         currentBgIndex = 0;
         activeLayer = 0;
     }
+
 
     // ====== Phaser 設定 ======
     const config = {
@@ -335,7 +344,9 @@
     }
 
     // helper: is game running
-    function gameRunning() { return !!dropTimer; }
+    function gameRunning() {
+        return !gamePaused && !!dropTimer;
+    }
 
     function update(time, delta) {
         const scene = game.scene.scenes[0];
@@ -543,41 +554,155 @@
     function clearEventTimers() {
         eventTimers.forEach(t => { try { t.remove(false); } catch (e) { } }); eventTimers = [];
     }
+    // ====== 一時停止・復帰管理 ======
+
+    // ゲーム一時停止フラグ
+    let gamePaused = false;
+
+    // 背景フリップ用のカスタムタイマー管理
+    let bgTimeouts = []; // {id, cb, delay, start, remain}
+
+    // ---- 背景 flip 用の安全な timeout ----
+    function scheduleBgTimeout(cb, delay) {
+        const h = {
+            id: setTimeout(cb, delay),
+            cb: cb,
+            delay: delay,
+            start: performance.now(),
+            remain: delay
+        };
+        bgTimeouts.push(h);
+        return h;
+    }
+
+    function clearBgTimeouts() {
+        bgTimeouts.forEach(h => clearTimeout(h.id));
+        bgTimeouts = [];
+    }
+
+    function pauseBgTimeouts() {
+        const now = performance.now();
+        bgTimeouts.forEach(h => {
+            clearTimeout(h.id);
+            h.remain = h.delay - (now - h.start);
+        });
+    }
+
+    function resumeBgTimeouts() {
+        const now = performance.now();
+        bgTimeouts.forEach(h => {
+            h.start = now;
+            h.id = setTimeout(h.cb, h.remain);
+        });
+    }
 
     // background flip DOM functions
     function setBackgroundShuffledWithFlip() {
         const bgLayer2 = document.getElementById('bgLayer2');
-        bgLayer2.style.display = "block"; // 演出の時だけ表示
+        if (!bgLayer2) return;
+        bgLayer2.style.display = "block";
         bgLayer2.style.zIndex = "1";
+
         const setting = difficultySettings[currentDifficulty];
         let img;
-        if (!firstBgUsed) { img = setting.bgFirst; firstBgUsed = true; }
-        else {
-            if (shuffledImages.length === 0) { shuffledImages = shuffleArray(bgImageList); if (shuffledImages[0] === lastUsedImage) { shuffledImages = shuffleArray(bgImageList); } }
+        if (!firstBgUsed) {
+            img = setting.bgFirst;
+            firstBgUsed = true;
+        } else {
+            if (shuffledImages.length === 0) {
+                shuffledImages = shuffleArray(bgImageList);
+                if (shuffledImages[0] === lastUsedImage) {
+                    shuffledImages = shuffleArray(bgImageList);
+                }
+            }
             img = shuffledImages.shift();
         }
         lastUsedImage = img;
-        bgLayer2.style.transform = 'rotateY(180deg)';
-        setTimeout(() => { bgLayer2.style.backgroundImage = `url(${img})`; bgLayer2.style.transform = 'rotateY(360deg)'; }, 300);
 
+        bgLayer2.style.transform = 'rotateY(180deg)';
+
+        scheduleBgTimeout(() => {
+            bgLayer2.style.backgroundImage = `url(${img})`;
+            bgLayer2.style.transform = 'rotateY(360deg)';
+        }, 300);
     }
 
     function resetBackgroundWithFlip() {
         const bgLayer2 = document.getElementById('bgLayer2');
-        bgLayer2.style.display = "block"; // 演出時だけ表示
-        bgLayer2.style.zIndex = "1"; // ←前面に出す
+        if (!bgLayer2) return;
+        bgLayer2.style.display = "block";
+        bgLayer2.style.zIndex = "1";
         bgLayer2.style.transform = 'rotateY(180deg)';
-        setTimeout(() => {
-            bgLayer2.style.backgroundImage = "url('asset/images/t.png')"; // ←固定に統一
+
+        scheduleBgTimeout(() => {
+            bgLayer2.style.backgroundImage = "url('asset/images/t.png')";
             bgLayer2.style.transform = 'rotateY(360deg)';
         }, 300);
-        // 終わったら非表示に
-        setTimeout(() => {
+
+        scheduleBgTimeout(() => {
             bgLayer2.style.display = "none";
-            bgLayer2.style.zIndex = "-1"; // ←元に戻す
+            bgLayer2.style.zIndex = "-1";
             bgLayer2.style.transform = '';
         }, 1000);
     }
+
+    // ---- pause / resume 実装 ----
+    function pauseGameForTab() {
+        if (gamePaused) return;
+        gamePaused = true;
+
+        if (dropTimer) dropTimer.paused = true;
+        eventTimers.forEach(t => { try { t.paused = true; } catch (e) { } });
+
+        // 背景ループ停止
+        if (bgIntervalId) {
+            clearInterval(bgIntervalId);
+            bgIntervalId = null;
+        }
+
+        pauseBgTimeouts();
+        pauseAllSoundsForPause(game.scene.scenes[0]);
+    }
+
+    function resumeGameForTab() {
+        if (!gamePaused) return;
+        gamePaused = false;
+
+        if (dropTimer) dropTimer.paused = false;
+        eventTimers.forEach(t => { try { t.paused = false; } catch (e) { } });
+
+        // 背景ループ再開（currentBgIndex の状態から継続）
+        resumeBackgroundLoop();
+
+        resumeBgTimeouts();
+        resumeAllSoundsForPause(game.scene.scenes[0]);
+    }
+
+    // ---- BGM/SFX 一時停止・復帰 ----
+    function pauseAllSoundsForPause(scene) {
+        try {
+            const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
+            if (!s) return;
+            if (s._bgm && s._bgm.isPlaying) { try { s._bgm.pause(); } catch (e) { } }
+            if (s._activeSfx && s._activeSfx.length) {
+                s._activeSfx.forEach(so => { try { so.pause(); } catch (e) { } });
+            }
+        } catch (e) { }
+    }
+
+    function resumeAllSoundsForPause(scene) {
+        try {
+            const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
+            if (!s) return;
+            if (!isMuted) {
+                if (s._bgm) { try { s._bgm.resume(); } catch (e) { } }
+            }
+            if (s._activeSfx && s._activeSfx.length) {
+                s._activeSfx.forEach(so => { try { so.resume(); } catch (e) { } });
+            }
+        } catch (e) { }
+    }
+
 
     function shuffleArray(a) { const arr = a.slice(); for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 
@@ -872,4 +997,103 @@
     // export some helper for debugging
     window._phaserGame = { game };
 
+
+    // --- visibility/blur listeners をここで登録（IIFE 内で定義済みの関数にアクセス可能） ---
+    (function registerVisibilityHandlers() {
+        // デバッグログ（不要なら削除してOK）
+        function _dbg(msg) { try { console.log('[phaser-pause] ' + msg); } catch (e) { } }
+
+        document.addEventListener('visibilitychange', () => {
+            _dbg('visibilitychange: hidden=' + document.hidden);
+            if (document.hidden) pauseGameForTab(); else resumeGameForTab();
+        });
+
+        // blur / focus は補助的に（モバイルや一部ブラウザの挙動に備える）
+        window.addEventListener('blur', () => {
+            _dbg('window blur');
+            pauseGameForTab();
+        });
+        window.addEventListener('focus', () => {
+            _dbg('window focus');
+            resumeGameForTab();
+        });
+    })();
+
+    // -------------------------------------------
+    // 追加修正：pause/resume が bgIntervalId (setInterval) も制御するようにする
+    // bgIntervalWasRunning を利用して復帰時に initBackgroundLoop を呼ぶ
+    // -------------------------------------------
+    let bgIntervalWasRunning = false;
+
+    // 拡張：pauseGameForTab の内部処理に bgInterval 停止を追加
+    // （既に関数があるので上書きする形で定義し直します）
+    const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
+    function pauseGameForTab() {
+        try { console.log('[phaser-pause] pauseGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
+        if (gamePaused) return;
+        gamePaused = true;
+
+        // dropTimer (Phaser TimerEvent) を pause
+        if (dropTimer) {
+            try { dropTimer.paused = true; } catch (e) { }
+        }
+
+        // eventTimers (配列) の pause
+        try { eventTimers.forEach(t => { try { t.paused = true; } catch (ee) { } }); } catch (e) { }
+
+        // clear interval-based background loop if running (remember to restart)
+        try {
+            if (bgIntervalId) {
+                bgIntervalWasRunning = true;
+                clearInterval(bgIntervalId);
+                bgIntervalId = null;
+            } else {
+                bgIntervalWasRunning = false;
+            }
+        } catch (e) { }
+
+        // 背景 flip の DOM timeout 管理も pause
+        try { pauseBgTimeouts(); } catch (e) { }
+
+        // BGM / SFX の pause
+        try { pauseAllSoundsForPause(game.scene && game.scene.scenes && game.scene.scenes[0]); } catch (e) { }
+
+        // optional overlay
+        try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'flex'; } catch (e) { }
+    }
+
+    // 拡張：resumeGameForTab の内部処理に bgInterval 再開を追加
+    const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
+    function resumeGameForTab() {
+        try { console.log('[phaser-pause] resumeGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
+        if (!gamePaused) return;
+        gamePaused = false;
+
+        // dropTimer resume
+        if (dropTimer) {
+            try { dropTimer.paused = false; } catch (e) { }
+        }
+
+        // eventTimers resume
+        try { eventTimers.forEach(t => { try { t.paused = false; } catch (ee) { } }); } catch (e) { }
+
+        // resume background interval loop if it was running
+        try {
+            if (bgIntervalWasRunning) {
+                // 再初期化（initBackgroundLoop は難易度も再設定するので currentDifficulty を渡す）
+                try { initBackgroundLoop(currentDifficulty); } catch (e) { }
+                bgIntervalWasRunning = false;
+            }
+        } catch (e) { }
+
+        // resume DOM background timeouts
+        try { resumeBgTimeouts(); } catch (e) { }
+
+        // resume BGM / SFX (ミュート状態は考慮)
+        try { resumeAllSoundsForPause(game.scene && game.scene.scenes && game.scene.scenes[0]); } catch (e) { }
+
+        // optional overlay hide
+        try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'none'; } catch (e) { }
+    }
 })();
+
