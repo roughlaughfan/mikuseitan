@@ -506,6 +506,7 @@ img {
         max-height: none;
         /* height: auto; */
         aspect-ratio: 3 / 4;
+        height: 133.33vw;
     }
 
     canvas {
