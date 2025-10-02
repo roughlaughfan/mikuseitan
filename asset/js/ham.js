@@ -576,10 +576,10 @@
         return h;
     }
 
-    function clearBgTimeouts() {
-        bgTimeouts.forEach(h => clearTimeout(h.id));
-        bgTimeouts = [];
-    }
+    // function clearBgTimeouts() {
+    //     bgTimeouts.forEach(h => clearTimeout(h.id));
+    //     bgTimeouts = [];
+    // }
 
     function pauseBgTimeouts() {
         const now = performance.now();
@@ -1001,8 +1001,6 @@
 
     // --- visibility/blur listeners をここで登録（IIFE 内で定義済みの関数にアクセス可能） ---
     (function registerVisibilityHandlers() {
-        // デバッグログ（不要なら削除してOK）
-        function _dbg(msg) { try { console.log('[phaser-pause] ' + msg); } catch (e) { } }
 
         document.addEventListener('visibilitychange', () => {
             _dbg('visibilitychange: hidden=' + document.hidden);
@@ -1028,9 +1026,8 @@
 
     // 拡張：pauseGameForTab の内部処理に bgInterval 停止を追加
     // （既に関数があるので上書きする形で定義し直します）
-    const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
+    // const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
     function pauseGameForTab() {
-        try { console.log('[phaser-pause] pauseGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
         if (gamePaused) return;
         gamePaused = true;
 
@@ -1059,14 +1056,21 @@
         // BGM / SFX の pause
         try { pauseAllSoundsForPause(game.scene && game.scene.scenes && game.scene.scenes[0]); } catch (e) { }
 
+        // Arcade Physics の一時停止（落下中アイテムも停止）
+        try {
+            const scene = game.scene && game.scene.scenes && game.scene.scenes[0];
+            if (scene && scene.physics && scene.physics.world) {
+                scene.physics.world.pause();
+            }
+        } catch (e) { }
+
         // optional overlay
         try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'flex'; } catch (e) { }
     }
 
     // 拡張：resumeGameForTab の内部処理に bgInterval 再開を追加
-    const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
+    // const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
     function resumeGameForTab() {
-        try { console.log('[phaser-pause] resumeGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
         if (!gamePaused) return;
         gamePaused = false;
 
@@ -1092,6 +1096,14 @@
 
         // resume BGM / SFX (ミュート状態は考慮)
         try { resumeAllSoundsForPause(game.scene && game.scene.scenes && game.scene.scenes[0]); } catch (e) { }
+
+        // Arcade Physics の再開（落下中アイテムも動き出す）
+        try {
+            const scene = game.scene && game.scene.scenes && game.scene.scenes[0];
+            if (scene && scene.physics && scene.physics.world) {
+                scene.physics.world.resume();
+            }
+        } catch (e) { }
 
         // optional overlay hide
         try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'none'; } catch (e) { }
