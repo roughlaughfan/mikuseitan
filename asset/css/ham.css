@@ -523,9 +523,6 @@ img {
         bottom: 3vh;
     }
 
-    #soundToggleContainer {
-        top: 40px;
-    }
 }
 
 @media (max-width: 479px) {
@@ -679,6 +676,9 @@ img {
     #score {
         top: 2.5vh;
     }
+    #score {
+        right: 3vh;
+    }
 
     #hearts img {
         width: 5vh;
@@ -687,5 +687,9 @@ img {
 
     #difficultyDisplay {
         left: 30vh;
+    }
+    #soundToggleContainer {
+        top: 8vh;
+        right: 3vh;
     }
 }

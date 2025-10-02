@@ -544,7 +544,8 @@
                         katakanaPatternIndex = (katakanaPatternIndex + 1) % setting.katakanaWords.length;
                     }
                 };
-                nextChar();
+                const firstT = scene.time.delayedCall(2000, nextChar);
+                eventTimers.push(firstT);
             }
         };
 
