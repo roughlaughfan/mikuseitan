@@ -504,10 +504,10 @@ img {
 @media (max-width: 479px) {
     #main .main_wrap {
         margin: 0 auto auto;
-        max-height: none;
+        max-height: 133.33vw;
         /* height: auto; */
         aspect-ratio: 3 / 4;
-        height: 133.33vw;
+        height: 100%;
     }
 
     canvas {
