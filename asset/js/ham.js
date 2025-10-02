@@ -1001,6 +1001,8 @@
 
     // --- visibility/blur listeners をここで登録（IIFE 内で定義済みの関数にアクセス可能） ---
     (function registerVisibilityHandlers() {
+        // デバッグログ（不要なら削除してOK）
+        function _dbg(msg) { try { console.log('[phaser-pause] ' + msg); } catch (e) { } }
 
         document.addEventListener('visibilitychange', () => {
             _dbg('visibilitychange: hidden=' + document.hidden);
@@ -1026,8 +1028,9 @@
 
     // 拡張：pauseGameForTab の内部処理に bgInterval 停止を追加
     // （既に関数があるので上書きする形で定義し直します）
-    // const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
+    const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
     function pauseGameForTab() {
+        try { console.log('[phaser-pause] pauseGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
         if (gamePaused) return;
         gamePaused = true;
 
@@ -1069,8 +1072,9 @@
     }
 
     // 拡張：resumeGameForTab の内部処理に bgInterval 再開を追加
-    // const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
+    const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
     function resumeGameForTab() {
+        try { console.log('[phaser-pause] resumeGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
         if (!gamePaused) return;
         gamePaused = false;
 
