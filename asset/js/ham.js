@@ -74,8 +74,8 @@
             bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
             katakanaWords: [
-["ミ", "ュ", "ー", "ジ", "ア", "ム"],
-["セ", "レ", "ク", "ト"]
+["サ", "シ", "ミ", "ス", "キ"],
+["ト", "ウ", "シ", "ツ", "チ", "ャ", "ー", "ジ"]
             ]
         },
         2: {
@@ -85,8 +85,8 @@
             bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
             katakanaWords: [
-["オ", "プ", "シ", "ョ", "ナ", "ル"],
-["ト", "マ", "ホ", "ー", "ク"]
+["ミ", "ス", "タ", "ー", "チ", "ャ", "ン", "ス"],
+["ビ", "ジ", "ン", "ト", "ク"]
             ]
         },
         1: {
@@ -96,8 +96,8 @@
             bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
             katakanaWords: [
-["メ", "ダ", "リ", "ス", "ト"],
-["2", "0", "5", "ゴ", "ウ", "シ", "ツ"]
+["ハ", "サ", "ミ", "ト", "イ", "ス"],
+["シ", "ュ", "ウ", "ト", "ク"]
             ]
         }
     };
