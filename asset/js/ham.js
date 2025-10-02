@@ -68,7 +68,7 @@
     // ====== 難易度設定（ham.js と同一） ======
     const difficultySettings = {
         3: {
-            minSpeed: 5, maxSpeed: 9, speedInterval: 20,
+            minSpeed: 6, maxSpeed: 10, speedInterval: 20,
             dropIntervalBase: 400, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg.png',
             bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
@@ -90,7 +90,7 @@
             ]
         },
         1: {
-            minSpeed: 3, maxSpeed: 7, speedInterval: 20,
+            minSpeed: 2, maxSpeed: 6, speedInterval: 20,
             dropIntervalBase: 1000, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg03.png',
             bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
