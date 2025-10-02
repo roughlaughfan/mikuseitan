@@ -522,6 +522,10 @@ img {
     #controls {
         bottom: 3vh;
     }
+
+    #soundToggleContainer {
+        top: 40px;
+    }
 }
 
 @media (max-width: 479px) {
@@ -558,7 +562,7 @@ img {
     }
 
     #soundToggleContainer {
-        top: 7vh;
+        top: calc(10px + 7vw);
         right: 3vw;
     }
 
@@ -619,5 +623,69 @@ img {
         height: 20vw;
         max-width: 60px;
         max-height: 60px;
+        font-size: 7vw;
+    }
+
+    #hearts,
+    #difficultyDisplay,
+    #score {
+        top: 2.5vw;
+    }
+
+    #hearts {
+        left: 2vw;
+        gap: .8vw;
+    }
+
+    #hearts img {
+        width: 5vw;
+        height: 5vw;
+    }
+
+    #leftRight {
+        gap: 5vw;
+    }
+
+    #controls {
+        padding: 0 3vw;
+    }
+
+
+}
+
+@media (max-height: 639px) and (orientation: landscape) {
+    h2 {
+        font-size: 3.2vh;
+    }
+
+    h1+p,
+    h2+p,
+    .btn,
+    #score,
+    #finalScore,
+    #finalClearScore,
+    #difficultyDisplay,
+    .x_share {
+        font-size: 3vh;
+    }
+
+    #hearts {
+        left: 2vh;
+        gap: .8vh;
+    }
+
+    #hearts,
+    #difficultyDisplay,
+    #score {
+        top: 2.5vh;
+    }
+
+    #hearts img {
+        width: 5vh;
+        height: 5vh;
+    }
+
+    #difficultyDisplay {
+        left: 30vh;
     }
 }
