@@ -121,10 +121,12 @@
         'asset/images/default_bg03.png'
     ];
 
-    let currentBgIndex = 0;
     let bgIntervalId = null;
-    let activeLayer = 0; // 0か1を切り替える
-    let savedBackgroundState = null; // { bg1, bg2, activeLayer, currentBgIndex }
+    let bgTimeoutId = null;
+    let activeLayer = 0;
+    let currentBgIndex = 0;
+    let lastChangeTime = 0;
+    let remainingTime = 0;
 
 
     // ====== 難易度開始時に初期化 ======
@@ -148,18 +150,39 @@
 
         activeLayer = 0;
 
-        if (bgIntervalId) { clearInterval(bgIntervalId); bgIntervalId = null; }
+        clearInterval(bgIntervalId);
+        clearTimeout(bgTimeoutId);
+        lastChangeTime = Date.now();
 
+        bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
+    }
 
-        bgIntervalId = setInterval(() => {
-            changeBackgroundWithCrossfade();
-        }, 10000);
+    function pauseBackgroundLoop() {
+        if (!bgIntervalId) return;
+
+        clearInterval(bgIntervalId);
+        clearTimeout(bgTimeoutId);
+        bgIntervalId = null;
+
+        // 次の切り替えまでの残り時間を計算
+        const elapsed = Date.now() - lastChangeTime;
+        remainingTime = Math.max(0, 10000 - elapsed);
     }
 
     // ====== 一時停止からの復帰用 ======
     function resumeBackgroundLoop() {
-        if (bgIntervalId) return; // 既に動いていれば何もしない
-        bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
+        if (bgIntervalId) return;
+
+        if (remainingTime > 0) {
+            // 残り時間だけ待ってからループ再開
+            bgTimeoutId = setTimeout(() => {
+                changeBackgroundWithCrossfade();
+                bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
+            }, remainingTime);
+        } else {
+            // すぐ再開
+            bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
+        }
     }
 
 
@@ -173,26 +196,25 @@
         const nextLayer = activeLayer === 0 ? d_bg2 : d_bg1;
         const prevLayer = activeLayer === 0 ? d_bg1 : d_bg2;
 
-        // 次のレイヤーに画像セットしてフェードイン
         nextLayer.style.backgroundImage = `url(${d_nextBg})`;
         nextLayer.classList.add('active');
-
-        // 前のレイヤーをフェードアウト
         prevLayer.classList.remove('active');
 
-        // アクティブレイヤーを切り替え
         activeLayer = activeLayer === 0 ? 1 : 0;
+        lastChangeTime = Date.now();
     }
 
-    function resetBackgroundLoop() {
+    function resetBackgroundLoop(fullReset = true) {
         if (bgIntervalId) {
             clearInterval(bgIntervalId);
             bgIntervalId = null;
         }
+        clearTimeout(bgTimeoutId);
+        bgTimeoutId = null;
 
-        // レイヤーの状態を初期化
         const d_bg1 = document.querySelector('#bgLayer .bg1');
         const d_bg2 = document.querySelector('#bgLayer .bg2');
+
         if (d_bg1) {
             d_bg1.style.backgroundImage = '';
             d_bg1.classList.remove('active');
@@ -202,8 +224,10 @@
             d_bg2.classList.remove('active');
         }
 
-        currentBgIndex = 0;
-        activeLayer = 0;
+        if (fullReset) {
+            currentBgIndex = 0;
+            activeLayer = 0;
+        }
     }
 
 
@@ -655,11 +679,30 @@
         if (dropTimer) dropTimer.paused = true;
         eventTimers.forEach(t => { try { t.paused = true; } catch (e) { } });
 
-        // 背景ループ停止
-        if (bgIntervalId) {
-            clearInterval(bgIntervalId);
-            bgIntervalId = null;
-        }
+        // pauseGameForTab に追加
+        try {
+            if (bgIntervalId) {
+                bgIntervalWasRunning = true;
+                clearInterval(bgIntervalId);
+                bgIntervalId = null;
+            } else {
+                bgIntervalWasRunning = false;
+            }
+
+            // ==== 背景クロスフェード中も止める ====
+            const d_bg1 = document.querySelector('#bgLayer .bg1');
+            const d_bg2 = document.querySelector('#bgLayer .bg2');
+            if (d_bg1 && d_bg2) {
+                // 強制的に現在の状態に固定
+                if (activeLayer === 0) {
+                    d_bg1.classList.add('active');
+                    d_bg2.classList.remove('active');
+                } else {
+                    d_bg2.classList.add('active');
+                    d_bg1.classList.remove('active');
+                }
+            }
+        } catch (e) { }
 
         pauseBgTimeouts();
         pauseAllSoundsForPause(game.scene.scenes[0]);
@@ -673,7 +716,13 @@
         eventTimers.forEach(t => { try { t.paused = false; } catch (e) { } });
 
         // 背景ループ再開（currentBgIndex の状態から継続）
-        resumeBackgroundLoop();
+        try {
+            if (bgIntervalWasRunning) {
+                // 背景ループを再開
+                resumeBackgroundLoop();
+                bgIntervalWasRunning = false;
+            }
+        } catch (e) { }
 
         resumeBgTimeouts();
         resumeAllSoundsForPause(game.scene.scenes[0]);
@@ -1001,21 +1050,16 @@
 
     // --- visibility/blur listeners をここで登録（IIFE 内で定義済みの関数にアクセス可能） ---
     (function registerVisibilityHandlers() {
-        // デバッグログ（不要なら削除してOK）
-        function _dbg(msg) { try { console.log('[phaser-pause] ' + msg); } catch (e) { } }
 
         document.addEventListener('visibilitychange', () => {
-            _dbg('visibilitychange: hidden=' + document.hidden);
             if (document.hidden) pauseGameForTab(); else resumeGameForTab();
         });
 
         // blur / focus は補助的に（モバイルや一部ブラウザの挙動に備える）
         window.addEventListener('blur', () => {
-            _dbg('window blur');
             pauseGameForTab();
         });
         window.addEventListener('focus', () => {
-            _dbg('window focus');
             resumeGameForTab();
         });
     })();
@@ -1030,7 +1074,6 @@
     // （既に関数があるので上書きする形で定義し直します）
     const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
     function pauseGameForTab() {
-        try { console.log('[phaser-pause] pauseGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
         if (gamePaused) return;
         gamePaused = true;
 
@@ -1074,7 +1117,6 @@
     // 拡張：resumeGameForTab の内部処理に bgInterval 再開を追加
     const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
     function resumeGameForTab() {
-        try { console.log('[phaser-pause] resumeGameForTab called, gamePaused=' + (gamePaused ? 'true' : 'false')); } catch (e) { }
         if (!gamePaused) return;
         gamePaused = false;
 
