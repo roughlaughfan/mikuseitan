@@ -94,8 +94,7 @@ canvas {
 }
 
 #startScreen,
-#gameOverScreen,
-#clearScreen {
+#gameOverScreen {
     position: absolute;
     top: 0;
     left: 0;
@@ -122,10 +121,6 @@ canvas {
 
 #gameOverScreen {
     background-image: url("../images/gameover.png");
-}
-
-#clearScreen {
-    background-image: url("../images/clear.png");
 }
 
 #hearts {
