@@ -27,9 +27,9 @@
     };
 
     // ====== DOM 要素 ======
-    const difficultyDisplay = document.getElementById('difficultyDisplay');
-    const heartsDiv = document.getElementById('hearts');
-    const scoreDiv = document.getElementById('score');
+    // const difficultyDisplay = document.getElementById('difficultyDisplay');
+    // const heartsDiv = document.getElementById('hearts');
+    // const scoreDiv = document.getElementById('score');
 
     // ====== カタカナパターン（ham.js から移植） ======
     const katakanaPatterns = {
@@ -240,11 +240,22 @@
     let itemPool = [];
     let score = 0;
     let lives = 3;
+    let scoreText;
+    let difficultyText;
+    let heartImages = [];
+    let soundToggleBtn; // Phaser.GameObjects.Text (またはImage)
+    let soundToggleContainer; // Phaser.GameObjects.Container
     let currentDifficulty = 1;
     let bgImageList = [];
     let shuffledImages = [];
-    const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
-    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
+    const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => {
+        stopAllSounds(); resetBackgroundLoop(); document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try {
+            if (difficultyText) difficultyText.setVisible(false);
+            if (scoreText) scoreText.setVisible(false);
+            if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(false));
+        } catch (e) { }
+    });
+    // const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
     let inKatakanaEvent = false;
     let katakanaPatternIndex = 0;
 
@@ -311,7 +322,7 @@
         }));
         const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); resetBackgroundLoop(); startGame(scene); });
         const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
-        const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { document.getElementById('startScreen').style.display = 'flex'; });
+        // const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { document.getElementById('startScreen').style.display = 'flex'; });
 
         // touch controls
         const leftBtn = document.getElementById('leftBtn');
@@ -349,13 +360,81 @@
                 if (gameRunning()) playerJump(scene);
             });
         }
+        // 【1. スコア表示 (#score)】
+        const scoreStyle = {
+            fontSize: '20px',
+            fill: '#000', // テキスト本体の色は黒（枠線用）
+            fontFamily: 'Noto Sans JP, sans-serif', // CSSで指定がないので一般的なフォントを設定
+            stroke: '#FFF', // CSSのtext-shadowをPhaserのstrokeで代替
+            strokeThickness: 2 // text-shadowの広がりをstrokeThicknessで代替 (2*1px + 1px)
+        };
+        // CSS: right: 10px, top: 10px に対応。Phaserのキャンバスサイズに基づき配置
+        const CAM_W = this.sys.game.config.width; // キャンバス幅を取得
+        scoreText = this.add.text(CAM_W - 10, 10, 'スコア: 0点', scoreStyle).setOrigin(1, 0);
+        scoreText.setDepth(10020).setVisible(false); // z-indexとdisplay:none
+
+        // 【3. ライフ表示 (#hearts)】
+        // CSS: top: 10px, left: 10px。幅30px/高さ30pxの画像を並べる
+        const heartSpacing = 35; // 30px(width) + 5px(gap)
+        for (let i = 0; i < 3; i++) {
+            const heart = this.add.image(10 + (i * heartSpacing), 10, 'heart').setOrigin(0, 0);
+            heart.setDepth(10020).setDisplaySize(30, 30).setVisible(false);
+            heartImages.push(heart);
+        }
+
+        // 【2. 難易度表示 (#difficultyDisplay)】
+        // CSSで指定がないため、スコアと同じスタイルで一時的に作成
+        const difficultyX = 10 + (3 * heartSpacing) + 10; // (左端10) + (3つ分の間隔と幅) + (難易度との間隔10) = 125
+        
+        difficultyText = this.add.text(difficultyX, 12, 'Level: 1', scoreStyle)
+            .setOrigin(0, 0); // 左上を基準 (left: 10px と同じ)
+        difficultyText.setDepth(10020).setVisible(false);
+
+
+        // 【4. サウンドトグル (#soundToggleContainer)】
+        // CSS: top: 50px, right: 7px。FontAwesomeのアイコンをTextで代替
+        const soundStyle = {
+            fontSize: '30px',
+            fill: '#FFF',
+            fontFamily: 'Arial, sans-serif' // FontAwesomeは使えないため、プレースホルダー
+        };
+        soundToggleBtn = this.add.text(0, 0, '🔊', soundStyle).setInteractive({ cursor: 'pointer' });
+
+        // コンテナを作成し、ボタンを格納 (right: 7px, top: 50px に対応)
+        soundToggleContainer = this.add.container(CAM_W - 7, 50, [soundToggleBtn]);
+        soundToggleContainer.setDepth(10020).setVisible(false);
+
+        // トグルボタンのクリックイベントを設定 (既存の bindSoundToggle が参照できれば、この処理は不要かもしれません)
+        // もし bindSoundToggle() がDOMを参照している場合は、その処理をPhaser用に書き換える必要があります。
+        soundToggleBtn.on('pointerdown', bindSoundTogglePhaser, this);
+
+        // -----------------------------------------------------------------
 
         // initial UI
-        updateHearts(); updateScore();
-        // bind sound toggle button
-        bindSoundToggle();
+        updateHeartsPhaser(); updateScorePhaser(); // Phaser用に修正した関数を呼ぶ
+        // bind sound toggle button (DOM版は不要)
+        // bindSoundToggle(); 
+
         // hide sound toggle on initial (start) screen
-        try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
+        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
+        // 既に setVisible(false) されているのでこの処理は不要
+
+
+        // initial UI
+        // updateHeartsPhaser(); updateScorePhaser();
+        // bind sound toggle button
+        // bindSoundToggle();
+        // hide sound toggle on initial (start) screen
+        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
+    }
+
+    // Phaser用にサウンドトグルの切り替え処理を定義
+    // (元の bindSoundToggle がDOM操作のみで完結していた場合、これを代わりに使用)
+    function bindSoundTogglePhaser() {
+        const isMuted = !game.sound.mute;
+        game.sound.mute = isMuted;
+        // アイコンを切り替え
+        soundToggleBtn.setText(isMuted ? '🔇' : '🔊');
     }
 
     // helper: is game running
@@ -429,8 +508,14 @@
         }
 
         // UI
-        difficultyDisplay.textContent = 'Level: ' + currentDifficulty;
-        scoreDiv.textContent = 'Score: ' + score;
+        if (difficultyText) {
+            // currentDifficulty 変数がグローバルスコープで利用可能である前提
+            difficultyText.setText('Level: ' + currentDifficulty);
+        }
+        if (scoreText) {
+            // score 変数がグローバルスコープで利用可能である前提
+            scoreText.setText('スコア: ' + score + '点');
+        }
     }
 
     // collision helper
@@ -812,18 +897,23 @@
         } catch (e) { }
 
         // show HUD and controls
-        try { document.getElementById('hearts').style.display = 'flex'; } catch (e) { }
-        try { document.getElementById('score').style.display = 'block'; } catch (e) { }
-        try { document.getElementById('difficultyDisplay').style.display = 'block'; } catch (e) { }
-        try {
-            // Show touch controls only on touch-capable devices (mobile/tablet)
-            const controlsEl = document.getElementById('controls');
-            if (controlsEl) {
-                const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
-                controlsEl.style.display = isTouch ? 'flex' : 'none';
-            }
-        } catch (e) { }
-        try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'block'; } catch (e) { }
+        // try { document.getElementById('hearts').style.display = 'flex'; } catch (e) { }
+        // try { document.getElementById('score').style.display = 'block'; } catch (e) { }
+        // try { document.getElementById('difficultyDisplay').style.display = 'block'; } catch (e) { }
+        // try {
+        //     // Show touch controls only on touch-capable devices (mobile/tablet)
+        //     const controlsEl = document.getElementById('controls');
+        //     if (controlsEl) {
+        //         const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+        //         controlsEl.style.display = isTouch ? 'flex' : 'none';
+        //     }
+        // } catch (e) { }
+        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'block'; } catch (e) { }
+
+        if (scoreText) scoreText.setVisible(true);
+        if (difficultyText) difficultyText.setVisible(true);
+        if (soundToggleContainer) soundToggleContainer.setVisible(true);
+        if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(true)); // updateHeartsPhaserで制御されるため、ここは不要かもしれません
 
         // start drop timer & events
         // Use non-reset behavior so initial drop interval is scaled by speedLevel (matches ham.js)
@@ -840,7 +930,7 @@
             }
         } catch (e) { }
 
-        updateHearts(); updateScore();
+        updateHeartsPhaser(); updateScorePhaser();
     }
 
     function endGame(status) {
@@ -852,10 +942,15 @@
 
         // hide HUD/controls
         try { document.getElementById('controls').style.display = 'none'; } catch (e) { }
-        try { document.getElementById('hearts').style.display = 'none'; } catch (e) { }
-        try { document.getElementById('score').style.display = 'none'; } catch (e) { }
-        try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { }
-        try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
+        // try { document.getElementById('hearts').style.display = 'none'; } catch (e) { }
+        // try { document.getElementById('score').style.display = 'none'; } catch (e) { }
+        // try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { }
+        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
+
+        if (scoreText) scoreText.setVisible(false);
+        if (difficultyText) difficultyText.setVisible(false);
+        if (soundToggleContainer) soundToggleContainer.setVisible(false);
+        if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(false));
 
         playSound('gameover');
         document.getElementById('endTitle').textContent = status;
@@ -864,7 +959,7 @@
         document.getElementById('finalScore').textContent = 'Score: ' + formatScoreKanji(score) + '点';
 
         // スコア100以上ならclear_imgを表示
-        if (score >= 100) {
+        if (score >= 10000000000) {
             document.querySelector('#gameOverScreen .clear_img').style.display = 'block';
         }
 
@@ -877,15 +972,15 @@
         if (type === 'candy') { score += 3; playSound('item'); }
         else if (type === 'donut') { score += 9; playSound('item'); }
         else if (type === 'star') { score += 50000000; playSound('star'); }
-        else if (type === 'heart') { if (lives < 3) { lives++; updateHearts(); } playSound('heart'); }
+        else if (type === 'heart') { if (lives < 3) { lives++; updateHeartsPhaser(); } playSound('heart'); }
         else if (type === 'bomb') {
             if (!isInvincible) {
-                lives--; updateHearts(); playSound('damage');
+                lives--; updateHeartsPhaser(); playSound('damage');
                 if (lives <= 0) { endGame('ゲームオーバー'); return; }
                 isInvincible = true; blinkFrame = 0; if (invincibleTimer) clearTimeout(invincibleTimer); invincibleTimer = setTimeout(() => { isInvincible = false; }, 3000);
             }
         }
-        updateScore();
+        updateScorePhaser();
         if (score >= 100) {
             const s = game.scene.scenes[0];
             if (s) showBillionAchievement(s);
@@ -1119,11 +1214,20 @@
         } catch (e) { }
     }
 
-    function updateHearts() {
-        heartsDiv.innerHTML = '';
-        for (let i = 0; i < 3; i++) { const img = document.createElement('img'); img.src = (i < lives) ? IMG_PATHS.heart : IMG_PATHS.heartEmpty; heartsDiv.appendChild(img); }
+    function updateHeartsPhaser() {
+        if (heartImages.length > 0) {
+            for (let i = 0; i < 3; i++) {
+                // lives変数に基づき画像を切り替える
+                const textureKey = (i < lives) ? 'heart' : 'heartEmpty'; // 'heartEmpty'はpreloadでロードされている必要があります
+                heartImages[i].setTexture(textureKey).setVisible(true);
+            }
+        }
     }
-    function updateScore() { scoreDiv.textContent = 'Score: ' + score + '点'; }
+    function updateScorePhaser() {
+        if (scoreText) {
+            scoreText.setText('Score: ' + score + '点');
+        }
+    }
 
 
     // 数値を「億」「万」を使った表現に変換する関数
@@ -1149,46 +1253,46 @@
         const hashtags = ["牡蠣サーモンキャッチゲーム", "テストプレイ", "HTML5ゲーム"];
         const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
-    const shareHandler = (e) => { // クリック時に実行される関数を定義
-        // スコアを漢数字風に整形
-        // ★ 注意: 'score' 変数がこのスコープ外で定義されている必要があります
-        const formattedScore = formatScoreKanji(score);
+        const shareHandler = (e) => { // クリック時に実行される関数を定義
+            // スコアを漢数字風に整形
+            // ★ 注意: 'score' 変数がこのスコープ外で定義されている必要があります
+            const formattedScore = formatScoreKanji(score);
 
-        // スコアが100以上なら冒頭に【100億点！】を付ける
-        const prefix = score >= 100 ? '【100億点！】' : '';
+            // スコアが100以上なら冒頭に【100億点！】を付ける
+            const prefix = score >= 100 ? '【100億点！】' : '';
 
-        const shareText = encodeURIComponent(
-            `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
-        );
+            const shareText = encodeURIComponent(
+                `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
+            );
 
-        const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
-        const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
+            const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
+            const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
 
-        // 1. モバイル判定
-        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-        
-        // 2. リンク要素の場合の処理 (元のコードから維持)
-        try { 
-            if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; 
-        } catch (err) { }
-        
-        
-        if (isMobile) {
-            // モバイルの場合、まずアプリ起動を試みる
-            // window.location.href を変更すると、ブラウザはアプリを開こうと試みます
-            window.location.href = shareUrlApp;
+            // 1. モバイル判定
+            const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
-            // アプリが開かなかった場合（アプリがインストールされていない、または失敗した場合）に
-            // Web版のXを新しいタブで開くように遅延させる（フォールバック）
-            setTimeout(() => {
+            // 2. リンク要素の場合の処理 (元のコードから維持)
+            try {
+                if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb;
+            } catch (err) { }
+
+
+            if (isMobile) {
+                // モバイルの場合、まずアプリ起動を試みる
+                // window.location.href を変更すると、ブラウザはアプリを開こうと試みます
+                window.location.href = shareUrlApp;
+
+                // アプリが開かなかった場合（アプリがインストールされていない、または失敗した場合）に
+                // Web版のXを新しいタブで開くように遅延させる（フォールバック）
+                setTimeout(() => {
+                    window.open(shareUrlWeb, '_blank');
+                }, 300); // 300ミリ秒程度の遅延
+
+            } else {
+                // PCの場合、直接Web版を開く
                 window.open(shareUrlWeb, '_blank');
-            }, 300); // 300ミリ秒程度の遅延
-            
-        } else {
-            // PCの場合、直接Web版を開く
-            window.open(shareUrlWeb, '_blank');
-        }
-    };
+            }
+        };
         if (shareBtn) {
             // use addEventListener so we don't accidentally overwrite other handlers
             shareBtn.addEventListener('click', shareHandler);
