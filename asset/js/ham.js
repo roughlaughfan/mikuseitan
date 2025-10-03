@@ -904,10 +904,6 @@
             }
         } catch (e) { }
 
-        // show HUD and controls
-        // try { document.getElementById('hearts').style.display = 'flex'; } catch (e) { }
-        // try { document.getElementById('score').style.display = 'block'; } catch (e) { }
-        // try { document.getElementById('difficultyDisplay').style.display = 'block'; } catch (e) { }
         try {
             // Show touch controls only on touch-capable devices (mobile/tablet)
             const controlsEl = document.getElementById('controls');
@@ -916,7 +912,6 @@
                 controlsEl.style.display = isTouch ? 'flex' : 'none';
             }
         } catch (e) { }
-        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'block'; } catch (e) { }
 
         if (scoreText) scoreText.setVisible(true);
         if (difficultyText) difficultyText.setVisible(true);
@@ -1144,41 +1139,7 @@
         } catch (e) { }
     }
 
-    // Pause BGM and active SFX on mute (do not destroy) so they can be resumed
-    function pauseAllSoundsForMute(scene) {
-        try {
-            const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
-            if (!s) return;
-            try { if (s._bgm) { try { s._bgm.pause && s._bgm.pause(); } catch (e) { } } } catch (e) { }
-            if (s._activeSfx && s._activeSfx.length) {
-                s._activeSfx.forEach(so => { try { so.pause && so.pause(); } catch (e) { } });
-            }
-        } catch (e) { }
-    }
 
-    // Resume paused sounds when unmuting. If BGM didn't exist and game is running, start it from beginning.
-    function resumeAllSounds(scene, running) {
-        try {
-            const s = scene || (game && game.scene && game.scene.scenes && game.scene.scenes[0]);
-            if (!s) return;
-            // Resume BGM if paused
-            try {
-                if (s._bgm) {
-                    try { s._bgm.resume && s._bgm.resume(); } catch (e) { }
-                } else if (running) {
-                    // if game running and no bgm yet, create and start
-                    try {
-                        const setting = difficultySettings[currentDifficulty] || {};
-                        if (setting.bgmKey) { s._bgm = s.sound.add(setting.bgmKey, { loop: true, volume: 0.1 }); s._bgm.play(); }
-                    } catch (e) { }
-                }
-            } catch (e) { }
-            // Resume SFX
-            if (s._activeSfx && s._activeSfx.length) {
-                s._activeSfx.forEach(so => { try { so.resume && so.resume(); } catch (e) { } });
-            }
-        } catch (e) { }
-    }
 
     // helper to stop bgm and active sfx for a given scene
     function stopAllSounds(scene) {
