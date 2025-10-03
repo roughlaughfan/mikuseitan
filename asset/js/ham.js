@@ -74,7 +74,7 @@
             displayName: '難しい', // 追加: 難易度表示用
             sharePrefix: '【難しいレベル】', // 追加: Xシェア用
             minSpeed: 6, maxSpeed: 10, speedInterval: 20,
-            dropIntervalBase: 400, dropIntervalReduction: 200,
+            dropIntervalBase: 1000, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg.png',
             bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
@@ -87,7 +87,7 @@
             displayName: '普通', // 追加: 難易度表示用
             sharePrefix: '【普通レベル】', // 追加: Xシェア用
             minSpeed: 4, maxSpeed: 8, speedInterval: 20,
-            dropIntervalBase: 600, dropIntervalReduction: 200,
+            dropIntervalBase: 1000, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg02.png',
             bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
@@ -122,7 +122,6 @@
     let bgTimeoutId = null;
     let activeLayer = 0;
     let currentBgIndex = 0;
-    // let lastChangeTime = 0;
     let remainingTime = 0;
 
 
@@ -153,18 +152,6 @@
 
         bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
     }
-
-    // function pauseBackgroundLoop() {
-    //     if (!bgIntervalId) return;
-
-    //     clearInterval(bgIntervalId);
-    //     clearTimeout(bgTimeoutId);
-    //     bgIntervalId = null;
-
-    //     // 次の切り替えまでの残り時間を計算
-    //     const elapsed = Date.now() - lastChangeTime;
-    //     remainingTime = Math.max(0, 10000 - elapsed);
-    // }
 
     // ====== 一時停止からの復帰用 ======
     function resumeBackgroundLoop() {
@@ -328,7 +315,6 @@
         }));
         const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); resetBackgroundLoop(); startGame(scene); });
         const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
-        // const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { document.getElementById('startScreen').style.display = 'flex'; });
 
         // touch controls
         const leftBtn = document.getElementById('leftBtn');
@@ -421,17 +407,6 @@
         // bind sound toggle button (DOM版は不要)
         // bindSoundToggle(); 
 
-        // hide sound toggle on initial (start) screen
-        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
-        // 既に setVisible(false) されているのでこの処理は不要
-
-
-        // initial UI
-        // updateHeartsPhaser(); updateScorePhaser();
-        // bind sound toggle button
-        // bindSoundToggle();
-        // hide sound toggle on initial (start) screen
-        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
     }
 
     // Phaser用にサウンドトグルの切り替え処理を定義
@@ -949,10 +924,6 @@
 
         // hide HUD/controls
         try { document.getElementById('controls').style.display = 'none'; } catch (e) { }
-        // try { document.getElementById('hearts').style.display = 'none'; } catch (e) { }
-        // try { document.getElementById('score').style.display = 'none'; } catch (e) { }
-        // try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { }
-        // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
 
         if (scoreText) scoreText.setVisible(false);
         if (difficultyText) difficultyText.setVisible(false);
