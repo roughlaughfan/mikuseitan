@@ -394,14 +394,14 @@
         // 【4. サウンドトグル (#soundToggleContainer)】
         // CSS: top: 50px, right: 7px。FontAwesomeのアイコンをTextで代替
         const soundStyle = {
-            fontSize: '30px',
+            fontSize: '24px',
             fill: '#FFF',
             fontFamily: 'Arial, sans-serif' // FontAwesomeは使えないため、プレースホルダー
         };
         soundToggleBtn = this.add.text(0, 0, '🔊', soundStyle).setInteractive({ cursor: 'pointer' });
 
         // コンテナを作成し、ボタンを格納 (right: 7px, top: 50px に対応)
-        soundToggleContainer = this.add.container(CAM_W - 7, 50, [soundToggleBtn]);
+        soundToggleContainer = this.add.container(CAM_W - 40, 45, [soundToggleBtn]);
         soundToggleContainer.setDepth(10020).setVisible(false);
 
         // トグルボタンのクリックイベントを設定 (既存の bindSoundToggle が参照できれば、この処理は不要かもしれません)
