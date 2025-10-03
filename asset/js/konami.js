@@ -21,8 +21,7 @@ document.addEventListener("keydown", (event) => {
         konamiUnlocked = true;
 
         // 効果音再生（1回だけ）
-        const se = new Audio("asset/sounds/konami_se.mp3");
-        se.play();
+        playSound('se');
 
         if (player) {
             player.setTexture("playerAlt"); // プレイヤーオブジェクトのテクスチャを新しいキーに設定

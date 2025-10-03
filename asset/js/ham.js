@@ -23,7 +23,9 @@
         gameover: 'asset/sounds/gameover.mp3',
         clear: 'asset/sounds/clear.mp3',
         bgm: 'asset/sounds/bgm.mp3',
-        star: 'asset/sounds/star.mp3'
+        star: 'asset/sounds/star.mp3',
+        btn: 'asset/sounds/btn.mp3',
+        se: 'asset/sounds/konami_se.mp3'
     };
 
     // ====== DOM 要素 ======
@@ -232,6 +234,7 @@
     let itemPool = [];
     let score = 0;
     let lives = 3;
+    let clearscore = 10000000000;
     let scoreText;
     let difficultyText;
     let heartImages = [];
@@ -310,6 +313,12 @@
         if (startBtnEl) startBtnEl.addEventListener('click', () => {
             const modal = document.getElementById('difficultyModal_phaser'); modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
         });
+
+        document.querySelectorAll('.btn').forEach(btn => btn.addEventListener('click', (e) => {
+    if (scene && scene.sound) {
+        scene.sound.play('btn');
+    }
+        }));
 
         document.querySelectorAll('.diffBtn_phaser').forEach(btn => btn.addEventListener('click', (e) => {
             currentDifficulty = parseInt(e.target.dataset.level);
@@ -961,7 +970,7 @@
         document.getElementById('finalScore').textContent = 'スコア: ' + formatScoreKanji(score) + '点';
 
         // スコア100億以上ならclear_imgを表示
-        if (score >= 100) {
+        if (score >= clearscore) {
             document.querySelector('#gameOverScreen .clear_img').style.display = 'block';
             document.getElementById('gameOverScreen').style.backgroundImage = "url('asset/images/clear.png')";
 
@@ -1002,7 +1011,7 @@
             }
         }
         updateScorePhaser();
-        if (score >= 10000000000) {
+        if (score >= clearscore) {
             const s = game.scene.scenes[0];
             if (s) showBillionAchievement(s);
         }
@@ -1218,7 +1227,7 @@
         const shareHandler = (e) => { // クリック時に実行される関数を定義
             const difficultyPrefix = difficultySettings[currentDifficulty]?.sharePrefix || '';
             const formattedScore = formatScoreKanji(score);
-            const scorePrefix = score >= 10000000000 ? '【100億点！】' : '';
+            const scorePrefix = score >= clearscore ? '【100億点！】' : '';
             const prefix = scorePrefix + difficultyPrefix;
 
             const shareText = encodeURIComponent(
