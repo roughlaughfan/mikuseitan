@@ -961,9 +961,28 @@
         document.getElementById('finalScore').textContent = 'スコア: ' + formatScoreKanji(score) + '点';
 
         // スコア100億以上ならclear_imgを表示
-        if (score >= 10000000000) {
+        if (score >= 100) {
             document.querySelector('#gameOverScreen .clear_img').style.display = 'block';
-        }
+            document.getElementById('gameOverScreen').style.backgroundImage = "url('asset/images/clear.png')";
+
+    const clearImageElement = document.getElementById('clearImage'); 
+    
+    // 要素が存在することを確認してから src を変更
+    if (clearImageElement) {
+        clearImageElement.src = 'asset/images/clear_ham.png'; 
+        // ↑ ここに新しい画像ファイルのパスを指定します。
+    }
+        } else {
+            document.querySelector('#gameOverScreen .clear_img').style.display = 'none';
+            document.getElementById('gameOverScreen').style.backgroundImage = "url('asset/images/gameover.png')";
+    const clearImageElement = document.getElementById('clearImage'); 
+    
+    // 要素が存在することを確認してから src を変更
+    if (clearImageElement) {
+        clearImageElement.src = 'asset/images/gameover_img.png'; 
+        // ↑ ここに新しい画像ファイルのパスを指定します。
+    }
+         }
 
         document.getElementById('gameOverScreen').style.display = 'flex';
 
@@ -1001,20 +1020,20 @@
         playSound('clear');
 
         // 画面中央にテキストを右端の外から配置
-        const text = scene.add.text(scene.scale.width + 200, scene.scale.height / 2, '100億点達成！', {
+        const text = scene.add.text(scene.scale.width + 200, scene.scale.height / 2, '100億点達成！100億点達成！100億点達成！', {
             fontFamily: "Noto Sans JP, sans-serif",
             fontSize: '48px',
             color: '#fff',
             fontStyle: '400',
-            stroke: '#ccccccff',
+            stroke: '#333',
             strokeThickness: 2
         }).setOrigin(0.5);
 
         // Tweenで右→左へ流す
         scene.tweens.add({
             targets: text,
-            x: -200,             // 左の外まで移動
-            duration: 4000,      // 移動速度 (ms) 調整可
+            x: -500,             // 左の外まで移動
+            duration: 5000,      // 移動速度 (ms) 調整可
             ease: 'Linear',
             onComplete: () => { text.destroy(); }
         });

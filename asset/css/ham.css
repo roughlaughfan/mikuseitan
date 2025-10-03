@@ -416,7 +416,7 @@ img {
     }
 
     #gameOverScreen h1+.img img {
-        max-width: 20vh;
+        max-width: 40vh;
     }
 
     .modal {
@@ -459,7 +459,7 @@ img {
     }
 
     #gameOverScreen h1+.img img {
-        max-width: 30vw;
+        max-width: 60vw;
     }
 
     h2 {
