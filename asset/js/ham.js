@@ -124,7 +124,6 @@
     let currentBgIndex = 0;
     let remainingTime = 0;
 
-
     // ====== 難易度開始時に初期化 ======
     function initBackgroundLoop(difficulty) {
         const d_setting = difficultySettings[difficulty];
@@ -248,13 +247,14 @@
             if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(false));
         } catch (e) { }
     });
-    // const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
     let inKatakanaEvent = false;
     let katakanaPatternIndex = 0;
 
     // speed/time control
     let minSpeed = 3, maxSpeed = 7, speedLevel = 3, speedInterval = 20;
     let gameStartTime = Date.now();
+
+    let pauseTime = 0; // ポーズしたシステム時刻 (Date.now()) を記録
 
     // timers & events
     const retryTop = document.getElementById('retryBtn_top_phaser');
@@ -658,10 +658,6 @@
         return h;
     }
 
-    // function clearBgTimeouts() {
-    //     bgTimeouts.forEach(h => clearTimeout(h.id));
-    //     bgTimeouts = [];
-    // }
 
     function pauseBgTimeouts() {
         const now = performance.now();
@@ -762,6 +758,7 @@
             }
         } catch (e) { }
 
+        pauseTime = Date.now(); // ポーズした時刻を記録
         pauseBgTimeouts();
         pauseAllSoundsForPause(game.scene.scenes[0]);
     }
@@ -770,9 +767,37 @@
         if (!gamePaused) return;
         gamePaused = false;
 
-        if (dropTimer) dropTimer.paused = false;
-        eventTimers.forEach(t => { try { t.paused = false; } catch (e) { } });
+        // ★ 速度上昇タイマーを調整
+        if (pauseTime > 0) {
+            const timeElapsedInPause = Date.now() - pauseTime;
+            // gameStartTimeを遅らせることで、非アクティブだった時間の経過を無効化
+            gameStartTime += timeElapsedInPause;
+            pauseTime = 0; // リセット
+        }
+        // dropTimer resume
+        if (dropTimer) {
+            try { dropTimer.paused = false; } catch (e) { }
+        }
 
+        // eventTimers resume
+        try { eventTimers.forEach(t => { try { t.paused = false; } catch (ee) { } }); } catch (e) { }
+
+        // ★ 復帰時に速度上昇の再計算を強制
+        //   update関数内で速度が変わると adjustDropRate(false, scene) が走ります。
+        const scene = game.scene && game.scene.scenes && game.scene.scenes[0];
+        if (scene) {
+            // update の速度計算ロジックをここで実行
+            const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+            const newSpeed = minSpeed + Math.floor(elapsed / speedInterval);
+
+            // 速度が変更されていなくても、gameStartTimeの調整によって、
+            // 復帰後のupdateで不必要な急激な速度変更が起きないようにします。
+            // もしポーズ中に20秒以上経過し、速度が上がるべきならここで更新されます。
+            if (newSpeed !== speedLevel) {
+                speedLevel = newSpeed;
+                adjustDropRate(false, scene);
+            }
+        }
         // 背景ループ再開（currentBgIndex の状態から継続）
         try {
             if (bgIntervalWasRunning) {
@@ -1118,30 +1143,6 @@
         } catch (e) { }
     }
 
-    // sound toggle binding (DOM)
-    function bindSoundToggle() {
-        const btn = document.getElementById('soundToggleBtn');
-        if (!btn) return;
-        const applyState = () => {
-            btn.classList.toggle('muted', isMuted);
-            btn.classList.toggle('unmuted', !isMuted);
-            //btn.textContent = isMuted ? '音: OFF' : '音: ON';
-            btn.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
-            try {
-                const s = (game && game.scene && game.scene.scenes && game.scene.scenes[0]) ? game.scene.scenes[0] : null;
-                const running = !!dropTimer; // gameplay indicator
-                if (isMuted) {
-                    // Pause BGM and active SFX rather than destroying so we can resume
-                    try { pauseAllSoundsForMute(s); } catch (e) { }
-                } else {
-                    // Unmuted: resume paused sounds if game running; otherwise do nothing
-                    try { resumeAllSounds(s, running); } catch (e) { }
-                }
-            } catch (e) { }
-        };
-        btn.addEventListener('click', () => { isMuted = !isMuted; applyState(); });
-        applyState();
-    }
 
     // Pause BGM and active SFX on mute (do not destroy) so they can be resumed
     function pauseAllSoundsForMute(scene) {

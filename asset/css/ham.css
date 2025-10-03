@@ -357,6 +357,16 @@ img {
     -webkit-backface-visibility: hidden;
 }
 
+.clear_img {
+    position: absolute;
+    right: 10%;
+    top: 5%;
+    transform: rotate(20deg);
+}
+
+.clear_img img {
+    max-width: 200px;
+}
 
 @media (max-height: 639px) {
     #main .main_wrap {
@@ -455,6 +465,7 @@ img {
     h2 {
         font-size: 5vw;
     }
+
     .svg-icon {
         width: 9vw;
         height: 9vw;
@@ -470,7 +481,7 @@ img {
     .btn,
     #finalScore,
     #score,
-    #finalClearScore, 
+    #finalClearScore,
     .x_share {
         font-size: 3.5vw;
     }
@@ -507,6 +518,14 @@ img {
         padding: 0 3vw;
     }
 
+    .clear_img {
+        right: 10vw;
+        top: 5vw;
+    }
+
+    .clear_img img {
+        max-width: 30vw;
+    }
 
 }
 
@@ -523,5 +542,14 @@ img {
     #finalClearScore,
     .x_share {
         font-size: 3vh;
+    }
+
+    .clear_img {
+        right: 10vh;
+        top: 3vh;
+    }
+
+    .clear_img img {
+        max-width: 25vh;
     }
 }
