@@ -981,7 +981,7 @@
             }
         }
         updateScorePhaser();
-        if (score >= 100) {
+        if (score >= 10000000000) {
             const s = game.scene.scenes[0];
             if (s) showBillionAchievement(s);
         }
