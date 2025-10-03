@@ -861,7 +861,7 @@
         document.getElementById('endTitle').textContent = status;
 
         // スコア表示を「億」「万」付きに
-        document.getElementById('finalScore').textContent = 'Score: ' + formatScoreKanji(score);
+        document.getElementById('finalScore').textContent = 'Score: ' + formatScoreKanji(score) + '点';
 
         // スコア100以上ならclear_imgを表示
         if (score >= 100) {
@@ -1123,7 +1123,7 @@
         heartsDiv.innerHTML = '';
         for (let i = 0; i < 3; i++) { const img = document.createElement('img'); img.src = (i < lives) ? IMG_PATHS.heart : IMG_PATHS.heartEmpty; heartsDiv.appendChild(img); }
     }
-    function updateScore() { scoreDiv.textContent = 'Score: ' + score; }
+    function updateScore() { scoreDiv.textContent = 'Score: ' + score + '点'; }
 
 
     // 数値を「億」「万」を使った表現に変換する関数
@@ -1149,29 +1149,46 @@
         const hashtags = ["牡蠣サーモンキャッチゲーム", "テストプレイ", "HTML5ゲーム"];
         const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
-        const shareHandler = (e) => { // クリック時に実行される関数を定義
-            // スコアを漢数字風に整形
-            const formattedScore = formatScoreKanji(score);
+    const shareHandler = (e) => { // クリック時に実行される関数を定義
+        // スコアを漢数字風に整形
+        // ★ 注意: 'score' 変数がこのスコープ外で定義されている必要があります
+        const formattedScore = formatScoreKanji(score);
 
-            // スコアが100以上なら冒頭に【100億点！】を付ける
-            const prefix = score >= 100 ? '【100億点！】' : '';
+        // スコアが100以上なら冒頭に【100億点！】を付ける
+        const prefix = score >= 100 ? '【100億点！】' : '';
 
-            const shareText = encodeURIComponent(
-                `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
-            );
+        const shareText = encodeURIComponent(
+            `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
+        );
 
-            const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
-            const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
+        const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
+        const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
 
-            // If this is an <a>, ensure href is set (for long-press or non-JS fallback)
-            try { if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; } catch (err) { }
+        // 1. モバイル判定
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        
+        // 2. リンク要素の場合の処理 (元のコードから維持)
+        try { 
+            if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb; 
+        } catch (err) { }
+        
+        
+        if (isMobile) {
+            // モバイルの場合、まずアプリ起動を試みる
+            // window.location.href を変更すると、ブラウザはアプリを開こうと試みます
+            window.location.href = shareUrlApp;
 
-            const nw = window.open(shareUrlWeb, '_blank');
-            try {
-                if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && nw) nw.location.href = shareUrlApp;
-            } catch (e) { }
-        };
-
+            // アプリが開かなかった場合（アプリがインストールされていない、または失敗した場合）に
+            // Web版のXを新しいタブで開くように遅延させる（フォールバック）
+            setTimeout(() => {
+                window.open(shareUrlWeb, '_blank');
+            }, 300); // 300ミリ秒程度の遅延
+            
+        } else {
+            // PCの場合、直接Web版を開く
+            window.open(shareUrlWeb, '_blank');
+        }
+    };
         if (shareBtn) {
             // use addEventListener so we don't accidentally overwrite other handlers
             shareBtn.addEventListener('click', shareHandler);
