@@ -1,9 +1,9 @@
 // Phaser移植版 - 元の ham.js と同等の挙動を再現します
 // Phaser単体移植版：ham.js の挙動をできるだけ忠実に再現します
-(function () {
     // ====== 画像/音声パス ======
     const IMG_PATHS = {
         player: 'asset/images/player.png',
+        playerAlt: 'asset/images/player_alt.png',
         candy: 'asset/images/candy.png',
         donut: 'asset/images/donut.png',
         bomb: 'asset/images/bomb.png',
@@ -257,6 +257,8 @@
 
     let pauseTime = 0; // ポーズしたシステム時刻 (Date.now()) を記録
 
+    
+
     // timers & events
     const retryTop = document.getElementById('retryBtn_top_phaser');
     if (retryTop) {
@@ -287,7 +289,8 @@
 
         // create player as image with manual physics-like update
         // set origin to top-left so x/y represent top-left corner (matches original ham.js coordinates)
-        player = scene.add.image(240, 580, 'player').setDisplaySize(42, 50).setOrigin(0, 0);
+        const textureKey = isKonamiUnlocked() ? "playerAlt" : "player"
+        player = scene.add.image(240, 580, textureKey).setDisplaySize(42, 50).setOrigin(0, 0);
         player.x = 240; player.y = 580; player.width = 42; player.height = 50; player.dy = 0; player.onGround = true;
 
         // group for items (no arcade body necessary; we'll move manually)
@@ -355,7 +358,7 @@
         }
         // 【1. スコア表示 (#score)】
         const scoreStyle = {
-            fontSize: '20px',
+            fontSize: '16px',
             fill: '#000', // テキスト本体の色は黒（枠線用）
             fontFamily: 'Noto Sans JP, sans-serif', // CSSで指定がないので一般的なフォントを設定
             stroke: '#FFF', // CSSのtext-shadowをPhaserのstrokeで代替
@@ -363,7 +366,7 @@
         };
         // CSS: right: 10px, top: 10px に対応。Phaserのキャンバスサイズに基づき配置
         const CAM_W = this.sys.game.config.width; // キャンバス幅を取得
-        scoreText = this.add.text(CAM_W - 10, 10, 'スコア: 0点', scoreStyle).setOrigin(1, 0);
+        scoreText = this.add.text(CAM_W - 10, 12, 'スコア: 0点', scoreStyle).setOrigin(1, 0);
         scoreText.setDepth(10020).setVisible(false); // z-indexとdisplay:none
 
         // 【3. ライフ表示 (#hearts)】
@@ -379,7 +382,7 @@
         // CSSで指定がないため、スコアと同じスタイルで一時的に作成
         const difficultyX = 10 + (3 * heartSpacing) + 10; // (左端10) + (3つ分の間隔と幅) + (難易度との間隔10) = 125
 
-        difficultyText = this.add.text(difficultyX, 12, 'Level: 1', scoreStyle)
+        difficultyText = this.add.text(difficultyX, 14, 'Level: 1', scoreStyle)
             .setOrigin(0, 0); // 左上を基準 (left: 10px と同じ)
         difficultyText.setDepth(10020).setVisible(false);
 
@@ -1377,5 +1380,4 @@
         // optional overlay hide
         try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'none'; } catch (e) { }
     }
-})();
 
