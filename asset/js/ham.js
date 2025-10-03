@@ -71,6 +71,8 @@
     // ====== 難易度設定（ham.js と同一） ======
     const difficultySettings = {
         3: {
+            displayName: '難しい', // 追加: 難易度表示用
+            sharePrefix: '【難しいレベル】', // 追加: Xシェア用
             minSpeed: 6, maxSpeed: 10, speedInterval: 20,
             dropIntervalBase: 400, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg.png',
@@ -82,6 +84,8 @@
             ]
         },
         2: {
+            displayName: '普通', // 追加: 難易度表示用
+            sharePrefix: '【普通レベル】', // 追加: Xシェア用
             minSpeed: 4, maxSpeed: 8, speedInterval: 20,
             dropIntervalBase: 600, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg02.png',
@@ -93,6 +97,8 @@
             ]
         },
         1: {
+            displayName: '簡単', // 追加: 難易度表示用
+            sharePrefix: '【簡単レベル】', // 追加: Xシェア用
             minSpeed: 2, maxSpeed: 6, speedInterval: 20,
             dropIntervalBase: 1000, dropIntervalReduction: 200,
             bgFirst: 'asset/images/hint_bg03.png',
@@ -385,7 +391,7 @@
         // 【2. 難易度表示 (#difficultyDisplay)】
         // CSSで指定がないため、スコアと同じスタイルで一時的に作成
         const difficultyX = 10 + (3 * heartSpacing) + 10; // (左端10) + (3つ分の間隔と幅) + (難易度との間隔10) = 125
-        
+
         difficultyText = this.add.text(difficultyX, 12, 'Level: 1', scoreStyle)
             .setOrigin(0, 0); // 左上を基準 (left: 10px と同じ)
         difficultyText.setDepth(10020).setVisible(false);
@@ -509,8 +515,9 @@
 
         // UI
         if (difficultyText) {
-            // currentDifficulty 変数がグローバルスコープで利用可能である前提
-            difficultyText.setText('Level: ' + currentDifficulty);
+            // currentDifficulty (例: 1, 2, 3) を使用して日本語名を取得
+            const difficultyName = difficultySettings[currentDifficulty]?.displayName || '不明';
+            difficultyText.setText('レベル: ' + difficultyName);
         }
         if (scoreText) {
             // score 変数がグローバルスコープで利用可能である前提
@@ -956,9 +963,9 @@
         document.getElementById('endTitle').textContent = status;
 
         // スコア表示を「億」「万」付きに
-        document.getElementById('finalScore').textContent = 'Score: ' + formatScoreKanji(score) + '点';
+        document.getElementById('finalScore').textContent = 'スコア: ' + formatScoreKanji(score) + '点';
 
-        // スコア100以上ならclear_imgを表示
+        // スコア100億以上ならclear_imgを表示
         if (score >= 10000000000) {
             document.querySelector('#gameOverScreen .clear_img').style.display = 'block';
         }
@@ -1254,12 +1261,10 @@
         const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
         const shareHandler = (e) => { // クリック時に実行される関数を定義
-            // スコアを漢数字風に整形
-            // ★ 注意: 'score' 変数がこのスコープ外で定義されている必要があります
+            const difficultyPrefix = difficultySettings[currentDifficulty]?.sharePrefix || '';
             const formattedScore = formatScoreKanji(score);
-
-            // スコアが100以上なら冒頭に【100億点！】を付ける
-            const prefix = score >= 100 ? '【100億点！】' : '';
+            const scorePrefix = score >= 10000000000 ? '【100億点！】' : '';
+            const prefix = scorePrefix + difficultyPrefix;
 
             const shareText = encodeURIComponent(
                 `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
@@ -1273,23 +1278,38 @@
 
             // 2. リンク要素の場合の処理 (元のコードから維持)
             try {
+                // アンカータグのhrefはWeb版を設定（長押しフォールバック用）
                 if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb;
             } catch (err) { }
 
 
             if (isMobile) {
-                // モバイルの場合、まずアプリ起動を試みる
-                // window.location.href を変更すると、ブラウザはアプリを開こうと試みます
+                // モバイルの場合:
+                // まずアプリ起動を試みる (現在のタブを上書き)
                 window.location.href = shareUrlApp;
 
-                // アプリが開かなかった場合（アプリがインストールされていない、または失敗した場合）に
-                // Web版のXを新しいタブで開くように遅延させる（フォールバック）
-                setTimeout(() => {
-                    window.open(shareUrlWeb, '_blank');
-                }, 300); // 300ミリ秒程度の遅延
+                // アプリが開かなかった場合（失敗または未インストール）に、
+                // 現在のタブをWeb版のURLに上書きするフォールバック
+                // window.open()ではないため、ポップアップブロックは発生しない
+                const fallbackTimer = setTimeout(() => {
+                    window.location.href = shareUrlWeb;
+                }, 500); // 500ミリ秒に延長して、アプリ起動の猶予を与える
+
+                // **重要:** アプリ起動が成功した場合（ブラウザがバックグラウンドに回る）、
+                // このタイマーが残ったままゲームに戻ると、Web版に勝手に遷移してしまうため、
+                // ページが非表示になったとき（アプリに遷移した可能性が高い）にタイマーをクリアするロジックが必要です。
+
+                // ページ可視性APIを使用して、ブラウザが最小化されたり別のアプリに切り替わったりしたときにタイマーをクリア
+                const handleVisibilityChange = () => {
+                    if (document.hidden) {
+                        clearTimeout(fallbackTimer);
+                        document.removeEventListener('visibilitychange', handleVisibilityChange);
+                    }
+                };
+                document.addEventListener('visibilitychange', handleVisibilityChange);
 
             } else {
-                // PCの場合、直接Web版を開く
+                // PCの場合、直接Web版を新しいタブで開く (window.openを使用)
                 window.open(shareUrlWeb, '_blank');
             }
         };
