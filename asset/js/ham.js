@@ -9,7 +9,10 @@
         bomb: 'asset/images/bomb.png',
         heart: 'asset/images/heart.png',
         heartEmpty: 'asset/images/heart_empty.png',
-        star: 'asset/images/star.png'
+        star: 'asset/images/star.png',
+        bg_h01: 'asset/images/hint_bg.png',
+        bg_h02: 'asset/images/hint_bg02.png',
+        bg_h03: 'asset/images/hint_bg03.png'
     };
 
     const SOUND_PATHS = {
@@ -74,8 +77,8 @@
             bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
             katakanaWords: [
-["サ", "シ", "ミ", "ス", "キ"],
-["ト", "ウ", "シ", "デ", "チ", "ャ", "ー", "ジ"]
+                ["サ", "シ", "ミ", "ス", "キ"],
+                ["ト", "ウ", "シ", "デ", "チ", "ャ", "ー", "ジ"]
             ]
         },
         2: {
@@ -85,8 +88,8 @@
             bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
             katakanaWords: [
-["ミ", "ス", "タ", "ー", "チ", "ャ", "ン", "ス"],
-["ビ", "ジ", "ン", "ト", "ク"]
+                ["ミ", "ス", "タ", "ー", "チ", "ャ", "ン", "ス"],
+                ["ビ", "ジ", "ン", "ト", "ク"]
             ]
         },
         1: {
@@ -96,8 +99,8 @@
             bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
             bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
             katakanaWords: [
-["ハ", "サ", "ミ", "ト", "イ", "ス"],
-["シ", "ュ", "ウ", "ト", "ク"]
+                ["ハ", "サ", "ミ", "ト", "イ", "ス"],
+                ["シ", "ュ", "ウ", "ト", "ク"]
             ]
         }
     };
@@ -113,7 +116,7 @@
     let bgTimeoutId = null;
     let activeLayer = 0;
     let currentBgIndex = 0;
-    let lastChangeTime = 0;
+    // let lastChangeTime = 0;
     let remainingTime = 0;
 
 
@@ -145,17 +148,17 @@
         bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
     }
 
-    function pauseBackgroundLoop() {
-        if (!bgIntervalId) return;
+    // function pauseBackgroundLoop() {
+    //     if (!bgIntervalId) return;
 
-        clearInterval(bgIntervalId);
-        clearTimeout(bgTimeoutId);
-        bgIntervalId = null;
+    //     clearInterval(bgIntervalId);
+    //     clearTimeout(bgTimeoutId);
+    //     bgIntervalId = null;
 
-        // 次の切り替えまでの残り時間を計算
-        const elapsed = Date.now() - lastChangeTime;
-        remainingTime = Math.max(0, 10000 - elapsed);
-    }
+    //     // 次の切り替えまでの残り時間を計算
+    //     const elapsed = Date.now() - lastChangeTime;
+    //     remainingTime = Math.max(0, 10000 - elapsed);
+    // }
 
     // ====== 一時停止からの復帰用 ======
     function resumeBackgroundLoop() {
@@ -241,7 +244,7 @@
     let bgImageList = [];
     let shuffledImages = [];
     const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
-    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
+    const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
     let inKatakanaEvent = false;
     let katakanaPatternIndex = 0;
 
@@ -308,7 +311,7 @@
         }));
         const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); resetBackgroundLoop(); startGame(scene); });
         const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
-        const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { document.getElementById('clearScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
+        const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { document.getElementById('startScreen').style.display = 'flex'; });
 
         // touch controls
         const leftBtn = document.getElementById('leftBtn');
@@ -778,7 +781,6 @@
         // hide screens
         document.getElementById('startScreen').style.display = 'none';
         document.getElementById('gameOverScreen').style.display = 'none';
-        document.getElementById('clearScreen').style.display = 'none';
         document.getElementById('difficultyModal_phaser').style.display = 'none';
 
         const setting = difficultySettings[currentDifficulty];
@@ -855,12 +857,21 @@
         try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { }
         try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'none'; } catch (e) { }
 
-        if (status === 'ゲームクリア！') {
-            playSound('clear'); document.getElementById('clearTitle').textContent = '100億点達成！'; document.getElementById('finalClearScore').textContent = 'Score: ' + score; document.getElementById('clearScreen').style.display = 'flex';
-        } else {
-            playSound('gameover'); document.getElementById('endTitle').textContent = status; document.getElementById('finalScore').textContent = 'Score: ' + score; document.getElementById('gameOverScreen').style.display = 'flex';
+        playSound('gameover');
+        document.getElementById('endTitle').textContent = status;
+
+        // スコア表示を「億」「万」付きに
+        document.getElementById('finalScore').textContent = 'Score: ' + formatScoreKanji(score);
+
+        // スコア100以上ならclear_imgを表示
+        if (score >= 100) {
+            document.querySelector('#gameOverScreen .clear_img').style.display = 'block';
         }
+
+        document.getElementById('gameOverScreen').style.display = 'flex';
+
     }
+
 
     function handleItemCollision(type) {
         if (type === 'candy') { score += 3; playSound('item'); }
@@ -875,7 +886,134 @@
             }
         }
         updateScore();
-        if (score >= 10000000000) endGame('ゲームクリア！');
+        if (score >= 100) {
+            const s = game.scene.scenes[0];
+            if (s) showBillionAchievement(s);
+        }
+    }
+
+    // 100億点達成演出用フラグ
+    let achievementShown = false;
+
+    // 100億点達成演出（Phaser上で右→左に流す）
+    function showBillionAchievement(scene) {
+        if (achievementShown) return;
+        achievementShown = true;
+
+        // 効果音（既存のclear音を流用）
+        playSound('clear');
+
+        // 画面中央にテキストを右端の外から配置
+        const text = scene.add.text(scene.scale.width + 200, scene.scale.height / 2, '100億点達成！', {
+            fontFamily: "Noto Sans JP, sans-serif",
+            fontSize: '48px',
+            color: '#fff',
+            fontStyle: '400',
+            stroke: '#ccccccff',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+
+        // Tweenで右→左へ流す
+        scene.tweens.add({
+            targets: text,
+            x: -200,             // 左の外まで移動
+            duration: 4000,      // 移動速度 (ms) 調整可
+            ease: 'Linear',
+            onComplete: () => { text.destroy(); }
+        });
+
+        // 点滅アニメーション
+        scene.tweens.add({
+            targets: text,
+            alpha: 0,            // 透明に
+            duration: 500,       // 0.5秒で消える
+            yoyo: true,          // 戻る（点滅する）
+            repeat: -1           // 無限繰り返し
+        });
+
+        // ====== 花火の追加 ======
+        // 小さな丸をパーティクルに使う
+        const graphics = scene.make.graphics({ x: 0, y: 0, add: false });
+        graphics.fillStyle(0xffffff, 1);
+        graphics.fillCircle(8, 8, 8);
+        graphics.generateTexture("particle", 16, 16);
+
+        // 花火を打ち上げる関数
+        function launchFirework(scene) {
+            // ==== 打ち上げ開始位置 ====
+            const groundY = scene.scale.height - 150;
+
+            // ==== 爆発位置 ====
+            // 左右どちらかの端寄りに発生
+            const side = Phaser.Math.Between(0, 1); // 0=左, 1=右
+            const startX = side === 0
+                ? Phaser.Math.Between(50, scene.scale.width / 3)
+                : Phaser.Math.Between((scene.scale.width * 2) / 3, scene.scale.width - 50);
+
+            const targetY = Phaser.Math.Between(100, scene.scale.height / 3);
+
+            // === 打ち上げの火の玉 ===
+            const rocket = scene.add.particles(startX, groundY, "particle", {
+                speedY: { min: -500, max: -600 },
+                lifespan: 800,
+                scale: { start: 0.3, end: 0.1 },
+                alpha: { start: 1, end: 0.5 },
+                quantity: 1,
+                frequency: 50,
+                tint: 0xffffcc
+            });
+
+            // 打ち上げ後に破裂
+            scene.time.delayedCall(800, () => {
+                rocket.stop();
+                rocket.destroy();
+
+                // === 爆発パーティクル ===
+                const explosion = scene.add.particles(startX, targetY, "particle", {
+                    speed: { min: -400, max: 400 },
+                    angle: { min: 0, max: 360 },
+                    lifespan: 1200,
+                    scale: { start: 0.48, end: 0 }, // ← サイズ80％
+                    alpha: { start: 1, end: 0 },
+                    gravityY: 300,
+                    blendMode: "ADD",
+                    tint: [0xff6666, 0x66ff66, 0x6666ff, 0xffff66]
+                });
+
+                // 爆発後のキラキラ（余韻）
+                scene.time.delayedCall(200, () => {
+                    const sparkle = scene.add.particles(startX, targetY, "particle", {
+                        speed: { min: -150, max: 150 },
+                        angle: { min: 0, max: 360 },
+                        lifespan: 2000,
+                        scale: { start: 0.16, end: 0 }, // ← キラキラも少し小さめ
+                        alpha: { start: 1, end: 0 },
+                        gravityY: 100,
+                        quantity: 2,
+                        frequency: 80,
+                        blendMode: "ADD",
+                        tint: [0xffffff, 0xffffcc, 0xffccff]
+                    });
+
+                    scene.time.delayedCall(3000, () => {
+                        sparkle.stop();
+                        sparkle.destroy();
+                    });
+                });
+
+                scene.time.delayedCall(1500, () => {
+                    explosion.stop();
+                    explosion.destroy();
+                });
+            });
+        }
+
+        for (let i = 0; i < 5; i++) {
+            scene.time.delayedCall(500 * i, () => {
+                const startX = Phaser.Math.Between(100, scene.scale.width - 100);
+                launchFirework(scene, startX);
+            });
+        }
     }
 
     function playerJump(scene) {
@@ -987,6 +1125,21 @@
     }
     function updateScore() { scoreDiv.textContent = 'Score: ' + score; }
 
+
+    // 数値を「億」「万」を使った表現に変換する関数
+    function formatScoreKanji(num) {
+        const oku = Math.floor(num / 100000000);      // 億
+        const man = Math.floor((num % 100000000) / 10000); // 万
+        const ichi = num % 10000;                     // 余り
+
+        let result = '';
+        if (oku > 0) result += oku + '億';
+        if (man > 0) result += man + '万';
+        if (ichi > 0 || result === '') result += ichi; // 全部0の時は0表示
+        return result;
+    }
+
+
     // share button bindings (reuse original share code)
     function bindShareButtons() {
         // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
@@ -997,8 +1150,16 @@
         const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
         const shareHandler = (e) => { // クリック時に実行される関数を定義
-            // クリック時にscore変数を参照する
-            const shareText = encodeURIComponent(`牡蠣サーモンキャッチゲームでスコア${score}点を達成しました！\n${formattedHashtags}`);
+            // スコアを漢数字風に整形
+            const formattedScore = formatScoreKanji(score);
+
+            // スコアが100以上なら冒頭に【100億点！】を付ける
+            const prefix = score >= 100 ? '【100億点！】' : '';
+
+            const shareText = encodeURIComponent(
+                `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
+            );
+
             const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
             const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
 
@@ -1060,7 +1221,7 @@
 
     // 拡張：pauseGameForTab の内部処理に bgInterval 停止を追加
     // （既に関数があるので上書きする形で定義し直します）
-    const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
+    // const _origPause = typeof pauseGameForTab === 'function' ? pauseGameForTab : null;
     function pauseGameForTab() {
         if (gamePaused) return;
         gamePaused = true;
@@ -1103,7 +1264,7 @@
     }
 
     // 拡張：resumeGameForTab の内部処理に bgInterval 再開を追加
-    const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
+    // const _origResume = typeof resumeGameForTab === 'function' ? resumeGameForTab : null;
     function resumeGameForTab() {
         if (!gamePaused) return;
         gamePaused = false;
