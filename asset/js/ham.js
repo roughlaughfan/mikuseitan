@@ -247,6 +247,7 @@
             if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(false));
         } catch (e) { }
     });
+    // const backToStartTop = document.getElementById('backToStartBtn_top'); if (backToStartTop) backToStartTop.addEventListener('click', () => { stopAllSounds(); resetBackgroundLoop(); document.getElementById('startScreen').style.display = 'flex'; try { document.getElementById('hearts').style.display = 'none'; } catch (e) { } try { document.getElementById('score').style.display = 'none'; } catch (e) { } try { document.getElementById('difficultyDisplay').style.display = 'none'; } catch (e) { } });
     let inKatakanaEvent = false;
     let katakanaPatternIndex = 0;
 
@@ -907,14 +908,14 @@
         // try { document.getElementById('hearts').style.display = 'flex'; } catch (e) { }
         // try { document.getElementById('score').style.display = 'block'; } catch (e) { }
         // try { document.getElementById('difficultyDisplay').style.display = 'block'; } catch (e) { }
-        // try {
-        //     // Show touch controls only on touch-capable devices (mobile/tablet)
-        //     const controlsEl = document.getElementById('controls');
-        //     if (controlsEl) {
-        //         const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
-        //         controlsEl.style.display = isTouch ? 'flex' : 'none';
-        //     }
-        // } catch (e) { }
+        try {
+            // Show touch controls only on touch-capable devices (mobile/tablet)
+            const controlsEl = document.getElementById('controls');
+            if (controlsEl) {
+                const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+                controlsEl.style.display = isTouch ? 'flex' : 'none';
+            }
+        } catch (e) { }
         // try { const st = document.getElementById('soundToggleContainer'); if (st) st.style.display = 'block'; } catch (e) { }
 
         if (scoreText) scoreText.setVisible(true);
@@ -1142,7 +1143,6 @@
             }
         } catch (e) { }
     }
-
 
     // Pause BGM and active SFX on mute (do not destroy) so they can be resumed
     function pauseAllSoundsForMute(scene) {
