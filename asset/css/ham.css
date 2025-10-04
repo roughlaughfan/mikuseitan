@@ -347,6 +347,10 @@ p.img {
     justify-content: center;
 }
 
+p.img + p.img {
+    margin-top: 0;
+}
+
 p.img img {
     width: 100%;
 }
