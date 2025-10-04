@@ -256,7 +256,9 @@ let katakanaPatternIndex = 0;
 
 // speed/time control
 let minSpeed = 3, maxSpeed = 7, speedLevel = 3, speedInterval = 20;
-let gameStartTime = Date.now();
+let gameStartTime = 0;      // Phaser 内部クロック基準
+let pauseStartTime = 0;     // ポーズ開始時刻
+let pauseAccumulated = 0;   // 累積ポーズ時間
 
 let pauseTime = 0; // ポーズしたシステム時刻 (Date.now()) を記録
 
@@ -436,95 +438,121 @@ function gameRunning() {
     return !gamePaused && !!dropTimer;
 }
 
+// === update() 内の累積時間版速度計算 ===
 function update(time, delta) {
     const scene = game.scene.scenes[0];
     if (!scene) return;
-    if (!gameRunning()) return;
 
     const keys = scene._keys;
-    // horizontal movement: scale by delta/30 to match ham.js per-tick motion
-    const deltaScale = delta / 30;
-    const movePerTick = 5; // pixels per ham.js tick
-    let moved = false;
+    const deltaScale = delta / 30; // 基準フレーム補正
+    const movePerTick = 5;
 
-    if ((keys.LEFT && keys.LEFT.isDown) || (keys.A && keys.A.isDown)) {
-        player.x = Math.max(0, player.x - movePerTick * deltaScale);
-        player.flipX = false; // 左向きに設定
-        moved = true;
+    // -----------------------
+    // 1. ポーズ中はゲーム時間を加算せずスキップ
+    // -----------------------
+    if (!gamePaused) {
+        accumulatedGameTime += delta;
     }
 
-    if ((keys.RIGHT && keys.RIGHT.isDown) || (keys.D && keys.D.isDown)) {
-        player.x = Math.min(480 - player.width, player.x + movePerTick * deltaScale);
-        player.flipX = true; // 右向きに設定 (反転)
-        moved = true;
+    // -----------------------
+    // 2. プレイヤー水平移動
+    // -----------------------
+    if (!gamePaused) {
+        if ((keys.LEFT && keys.LEFT.isDown) || (keys.A && keys.A.isDown)) {
+            player.x = Math.max(0, player.x - movePerTick * deltaScale);
+            player.flipX = false;
+        }
+        if ((keys.RIGHT && keys.RIGHT.isDown) || (keys.D && keys.D.isDown)) {
+            player.x = Math.min(480 - player.width, player.x + movePerTick * deltaScale);
+            player.flipX = true;
+        }
     }
-    // jump detection (single-press) — UP / W / SPACE
+
+    // -----------------------
+    // 3. ジャンプ判定
+    // -----------------------
     try {
-        if (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+        if (!gamePaused && (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE))) {
             playerJump(scene);
         }
-    } catch (e) { }
+    } catch (e) {}
 
-    // gravity (units: dy is px per ham.js tick) — apply gravity scaled by delta
-    const gravity = 1;
-    player.dy += gravity * deltaScale;
-    player.y += player.dy * deltaScale;
-    if (player.y + player.height >= 640) { player.y = 640 - player.height; player.dy = 0; player.onGround = true; }
-
-    // invincible blinking
-    if (isInvincible) { blinkFrame++; player.alpha = (blinkFrame % 6 < 3) ? 0.3 : 1; } else { player.alpha = 1; }
-
-    // speed adjustment by elapsed time (same formula as ham.js)
-    const elapsed = Math.floor((scene.time.now - gameStartTime) / 1000);
-    let newSpeed = minSpeed + Math.floor(elapsed / speedInterval);
-    // ★ maxSpeed を超えないよう制限
-    // newSpeed = Math.min(newSpeed, maxSpeed);
-    if (newSpeed !== speedLevel) {
-    speedLevel = newSpeed;
-    adjustDropRate(false, scene);
-
-    console.log(
-        `[SpeedUpdate] time=${elapsed}s, ` +
-        `difficulty=${currentDifficulty}, ` +
-        `interval=${speedInterval}, ` +
-        `minSpeed=${minSpeed}, ` +
-        `speedLevel=${speedLevel}`
-    );
-}
-
-    // move items and collision check (scale vertical movement by delta)
-    const children = itemsGroup.getChildren().slice();
-    for (let i = children.length - 1; i >= 0; i--) {
-        const it = children[i];
-        const downKey = (keys.S && keys.S.isDown) || (keys.DOWN && keys.DOWN.isDown);
-        const spd = speedLevel * (downKey ? 2 : 1);
-        it.y += spd * deltaScale;
-
-        if (it.active && rectsOverlap({ x: player.x, y: player.y, w: player.width, h: player.height }, { x: it.x, y: it.y, w: it.displayWidth, h: it.displayHeight })) {
-            const type = it.getData('type') || 'candy';
-            // If player is invincible, bombs should NOT be removed on collision (other items still collected)
-            if (type === 'bomb' && isInvincible) {
-                // skip handling so bomb remains in play
-                continue;
-            }
-            handleItemCollision(type);
-            recycleItem(it);
-            continue;
+    // -----------------------
+    // 4. 重力適用
+    // -----------------------
+    if (!gamePaused) {
+        const gravity = 1;
+        player.dy += gravity * deltaScale;
+        player.y += player.dy * deltaScale;
+        if (player.y + player.height >= 640) {
+            player.y = 640 - player.height;
+            player.dy = 0;
+            player.onGround = true;
         }
-        if (it.y > 700) recycleItem(it);
     }
 
-    // UI
+    // -----------------------
+    // 5. 無敵点滅
+    // -----------------------
+    if (isInvincible) {
+        blinkFrame++;
+        player.alpha = (blinkFrame % 6 < 3) ? 0.3 : 1;
+    } else {
+        player.alpha = 1;
+    }
+
+    // -----------------------
+    // 6. 速度計算（ポーズ中は更新しない）
+    // -----------------------
+    if (!gamePaused) {
+        const elapsed = Math.floor(accumulatedGameTime / 1000);
+        const newSpeed = minSpeed + Math.floor(elapsed / speedInterval);
+        if (newSpeed !== speedLevel) {
+            speedLevel = newSpeed;
+            adjustDropRate(false, scene);
+
+        }
+    }
+
+    // -----------------------
+    // 7. アイテム移動・衝突判定（ポーズ中は落下停止）
+    // -----------------------
+    if (!gamePaused) {
+        const children = itemsGroup.getChildren().slice();
+        for (let i = children.length - 1; i >= 0; i--) {
+            const it = children[i];
+            const downKey = (keys.S && keys.S.isDown) || (keys.DOWN && keys.DOWN.isDown);
+            const spd = speedLevel * (downKey ? 2 : 1);
+            it.y += spd * deltaScale;
+
+            if (it.active && rectsOverlap({ x: player.x, y: player.y, w: player.width, h: player.height },
+                                         { x: it.x, y: it.y, w: it.displayWidth, h: it.displayHeight })) {
+                const type = it.getData('type') || 'candy';
+                if (type === 'bomb' && isInvincible) continue;
+                handleItemCollision(type);
+                recycleItem(it);
+                continue;
+            }
+
+            if (it.y > 700) recycleItem(it);
+        }
+    }
+
+    // -----------------------
+    // 8. UI更新（常時）
+    // -----------------------
     if (difficultyText) {
-        // currentDifficulty (例: 1, 2, 3) を使用して日本語名を取得
         const difficultyName = difficultySettings[currentDifficulty]?.displayName || '不明';
         difficultyText.setText('レベル: ' + difficultyName);
     }
     if (scoreText) {
-        // score 変数がグローバルスコープで利用可能である前提
         scoreText.setText('スコア: ' + score + '点');
     }
 }
+
+
+
+
 
 // collision helper
 function rectsOverlap(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
@@ -614,6 +642,7 @@ function spawnKatakanaChar(scene, char, isLastChar) {
 }
 
 // events scheduling (match ham.js phases)
+// === scheduleEvents() 修正版（カタカナイベント後の安全補正付き） ===
 function scheduleEvents(scene) {
     clearEventTimers();
     let eventPhase = 0;
@@ -625,39 +654,56 @@ function scheduleEvents(scene) {
             const t = scene.time.delayedCall(20000, runEvent); eventTimers.push(t);
         } else if (eventPhase % 3 === 2) {
             let count = 0;
-            const int = scene.time.addEvent({ delay: 5000, loop: true, callback: () => { spawnPatternRow(scene); if (++count >= 3) int.remove(false); } });
+            const int = scene.time.addEvent({
+                delay: 5000,
+                loop: true,
+                callback: () => {
+                    spawnPatternRow(scene);
+                    if (++count >= 3) int.remove(false);
+                }
+            });
             eventTimers.push(int);
             const t = scene.time.delayedCall(20000, runEvent); eventTimers.push(t);
         } else {
-            // katakana
+            // カタカナイベント
             inKatakanaEvent = true;
             const setting = difficultySettings[currentDifficulty];
             setBackgroundShuffledWithFlip();
             const chars = setting.katakanaWords[katakanaPatternIndex] || [];
             let kidx = 0;
+
             const nextChar = () => {
                 if (!gameRunning()) return;
                 if (kidx < chars.length) {
                     const isLast = (kidx === chars.length - 1);
                     spawnKatakanaChar(scene, chars[kidx], isLast);
                     kidx++;
-                    const t = scene.time.delayedCall(2000, nextChar); eventTimers.push(t);
+                    const t = scene.time.delayedCall(2000, nextChar);
+                    eventTimers.push(t);
                 } else {
                     inKatakanaEvent = false;
+
                     const resetT = scene.time.delayedCall(2000, () => {
                         resetBackgroundWithFlip();
-                        minSpeed += 1; speedLevel = minSpeed; adjustDropRate(true, scene); gameStartTime = scene.time.now;
-                    }); eventTimers.push(resetT);
-                    const t = scene.time.delayedCall(10000, runEvent); eventTimers.push(t);
+                        speedLevel = minSpeed + 1;
+                        accumulatedGameTime = (speedLevel - minSpeed) * speedInterval * 1000;
+                    });
+                    eventTimers.push(resetT);
+
+                    const t = scene.time.delayedCall(10000, runEvent);
+                    eventTimers.push(t);
+
                     katakanaPatternIndex = (katakanaPatternIndex + 1) % setting.katakanaWords.length;
                 }
             };
+
             const firstT = scene.time.delayedCall(2000, nextChar);
             eventTimers.push(firstT);
         }
     };
 
-    const initial = scene.time.delayedCall(20000, runEvent); eventTimers.push(initial);
+    const initial = scene.time.delayedCall(20000, runEvent);
+    eventTimers.push(initial);
 }
 
 function clearEventTimers() {
@@ -665,6 +711,7 @@ function clearEventTimers() {
 }
 // ====== 一時停止・復帰管理 ======
 
+let accumulatedGameTime = 0; // ポーズを除いた経過時間（ms）
 // ゲーム一時停止フラグ
 let gamePaused = false;
 
@@ -757,34 +804,7 @@ function pauseGameForTab() {
     gamePaused = true;
 
     if (dropTimer) dropTimer.paused = true;
-    eventTimers.forEach(t => { try { t.paused = true; } catch (e) { } });
-
-    // pauseGameForTab に追加
-    try {
-        if (bgIntervalId) {
-            bgIntervalWasRunning = true;
-            clearInterval(bgIntervalId);
-            bgIntervalId = null;
-        } else {
-            bgIntervalWasRunning = false;
-        }
-
-        // ==== 背景クロスフェード中も止める ====
-        const d_bg1 = document.querySelector('#bgLayer .bg1');
-        const d_bg2 = document.querySelector('#bgLayer .bg2');
-        if (d_bg1 && d_bg2) {
-            // 強制的に現在の状態に固定
-            if (activeLayer === 0) {
-                d_bg1.classList.add('active');
-                d_bg2.classList.remove('active');
-            } else {
-                d_bg2.classList.add('active');
-                d_bg1.classList.remove('active');
-            }
-        }
-    } catch (e) { }
-
-    pauseTime = scene.time.now; // ポーズした時刻を記録
+    eventTimers.forEach(t => { try { t.paused = true; } catch(e){ } });
     pauseBgTimeouts();
     pauseAllSoundsForPause(game.scene.scenes[0]);
 }
@@ -793,46 +813,8 @@ function resumeGameForTab() {
     if (!gamePaused) return;
     gamePaused = false;
 
-    // ★ 速度上昇タイマーを調整
-    if (pauseTime > 0) {
-        const timeElapsedInPause = scene.time.now - pauseTime;
-        // gameStartTimeを遅らせることで、非アクティブだった時間の経過を無効化
-        gameStartTime += timeElapsedInPause;
-        pauseTime = 0; // リセット
-    }
-    // dropTimer resume
-    if (dropTimer) {
-        try { dropTimer.paused = false; } catch (e) { }
-    }
-
-    // eventTimers resume
-    try { eventTimers.forEach(t => { try { t.paused = false; } catch (ee) { } }); } catch (e) { }
-
-    // ★ 復帰時に速度上昇の再計算を強制
-    //   update関数内で速度が変わると adjustDropRate(false, scene) が走ります。
-    const scene = game.scene && game.scene.scenes && game.scene.scenes[0];
-    if (scene) {
-        // update の速度計算ロジックをここで実行
-        const elapsed = Math.floor((scene.time.now - gameStartTime) / 1000);
-        let newSpeed = minSpeed + Math.floor(elapsed / speedInterval);
-
-        // 速度が変更されていなくても、gameStartTimeの調整によって、
-        // 復帰後のupdateで不必要な急激な速度変更が起きないようにします。
-        // もしポーズ中に20秒以上経過し、速度が上がるべきならここで更新されます。
-        if (newSpeed !== speedLevel) {
-            speedLevel = newSpeed;
-            adjustDropRate(false, scene);
-        }
-    }
-    // 背景ループ再開（currentBgIndex の状態から継続）
-    try {
-        if (bgIntervalWasRunning) {
-            // 背景ループを再開
-            resumeBackgroundLoop();
-            bgIntervalWasRunning = false;
-        }
-    } catch (e) { }
-
+    if (dropTimer) dropTimer.paused = false;
+    eventTimers.forEach(t => { try { t.paused = false; } catch(e){ } });
     resumeBgTimeouts();
     resumeAllSoundsForPause(game.scene.scenes[0]);
 }
@@ -870,14 +852,12 @@ function adjustDropRate(reset, sceneParam) {
     const scene = sceneParam || game.scene.scenes[0];
     if (!scene) return;
     if (dropTimer) { try { dropTimer.remove(false); } catch (e) { } dropTimer = null; }
+
     const setting = difficultySettings[currentDifficulty];
-    // reset が true の場合は speedLevel を minSpeed に強制リセット
     if (reset) {
         speedLevel = setting.minSpeed;
     }
     const currentSpeedLevel = Math.max(1, speedLevel);
-
-    // interval の計算を統一 (reset=true の場合も速度を反映)
     const interval = Math.max(300, setting.dropIntervalBase / currentSpeedLevel);
 
     dropTimer = scene.time.addEvent({
@@ -889,79 +869,103 @@ function adjustDropRate(reset, sceneParam) {
 
 // game start / init
 function startGame(scene) {
-    // ensure any lingering timers/items from previous run are fully cleared
-    try { if (dropTimer) { try { dropTimer.remove(false); } catch (e) { } dropTimer = null; } } catch (e) { }
+    // -----------------------
+    // 1. 既存タイマー・SFX の完全クリア
+    // -----------------------
+    try { if (dropTimer) { dropTimer.remove(false); dropTimer = null; } } catch (e) {}
     clearEventTimers();
-    try { if (invincibleTimer) { clearTimeout(invincibleTimer); invincibleTimer = null; isInvincible = false; } } catch (e) { }
-    try { if (game && game.scene && game.scene.scenes[0] && game.scene.scenes[0]._bgm) { try { game.scene.scenes[0]._bgm.stop(); } catch (e) { } } } catch (e) { }
-    // stop any active SFX recorded on the scene (clear/gameover, star, etc.)
-    try { const s = (scene || (game && game.scene && game.scene.scenes[0])); if (s && s._activeSfx) { s._activeSfx.forEach(so => { try { so.stop && so.stop(); } catch (e) { } }); s._activeSfx = []; } } catch (e) { }
-    // destroy existing items and rebuild pool
-    try { clearAllItems(scene); } catch (e) { }
+    try { if (invincibleTimer) { clearTimeout(invincibleTimer); invincibleTimer = null; isInvincible = false; } } catch (e) {}
+    try { if (scene._bgm) { try { scene._bgm.stop(); } catch(e){} scene._bgm.destroy && scene._bgm.destroy(); scene._bgm = null; } } catch(e) {}
+    try { if (scene._activeSfx) { scene._activeSfx.forEach(s => { try{s.stop && s.stop();} catch(e){} }); scene._activeSfx = []; } } catch(e) {}
+    try { clearAllItems(scene); } catch(e) {}
 
-    // hide screens
-    document.getElementById('startScreen').style.display = 'none';
-    document.getElementById('gameOverScreen').style.display = 'none';
-    document.getElementById('difficultyModal_phaser').style.display = 'none';
+    // -----------------------
+    // 2. 画面非表示
+    // -----------------------
+    ['startScreen','gameOverScreen','difficultyModal_phaser'].forEach(id=>{
+        try{ document.getElementById(id).style.display='none'; } catch(e){}
+    });
 
+    // -----------------------
+    // 3. 難易度設定・背景・カタカナ初期化
+    // -----------------------
     const setting = difficultySettings[currentDifficulty];
-    minSpeed = setting.minSpeed; speedLevel = setting.minSpeed; maxSpeed = setting.maxSpeed; speedInterval = setting.speedInterval;
-    bgImageList = setting.bgImages.slice(); shuffledImages = shuffleArray(bgImageList); firstBgUsed = false; katakanaWords = setting.katakanaWords; katakanaPatternIndex = 0;
-    document.getElementById('bgLayer').style.backgroundImage = `url(${setting.defaultBg})`;
+    minSpeed = setting.minSpeed;
+    speedLevel = setting.minSpeed;
+    maxSpeed = setting.maxSpeed;
+    speedInterval = setting.speedInterval;
 
-    // 特殊イベント用背景(bgLayer2)のリセット処理
+    bgImageList = setting.bgImages.slice();
+    shuffledImages = shuffleArray(bgImageList);
+    firstBgUsed = false;
+
+    katakanaWords = setting.katakanaWords;
+    katakanaPatternIndex = 0;
+
+    try { document.getElementById('bgLayer').style.backgroundImage = `url(${setting.defaultBg})`; } catch(e){}
+
+    // bgLayer2 初期化
     const bgLayer2 = document.getElementById('bgLayer2');
-    if (bgLayer2) {
+    if(bgLayer2){
         bgLayer2.style.display = "none";
         bgLayer2.style.zIndex = "-1";
-        bgLayer2.style.backgroundImage = "url('asset/images/t.png')"; // resetBackgroundWithFlipで設定されているデフォルトに戻す
+        bgLayer2.style.backgroundImage = "url('asset/images/t.png')";
         bgLayer2.style.transform = '';
     }
 
-
-    // reset state
-    score = 0; lives = 3; isInvincible = false; blinkFrame = 0; gameStartTime = scene.time.now;
+    // -----------------------
+    // 4. ゲーム状態リセット
+    // -----------------------
+    score = 0; lives = 3; isInvincible = false; blinkFrame = 0;
+    accumulatedGameTime = 0;
+    gamePaused = false;
     inKatakanaEvent = false;
-    // clear any remaining items (defensive)
-    try { itemsGroup.getChildren().forEach(it => recycleItem(it)); } catch (e) { }
+    try { itemsGroup.getChildren().forEach(it=>recycleItem(it)); } catch(e){}
 
-    // reset player position/velocity to initial values (important on restart)
-    try {
-        if (player) {
-            player.x = 240; player.y = 580; player.dy = 0; player.onGround = true;
-        }
-    } catch (e) { }
+    // プレイヤー位置・速度リセット
+    try { if(player){ player.x=240; player.y=580; player.dy=0; player.onGround=true; } } catch(e){}
 
+    // -----------------------
+    // 5. タッチ操作UI
+    // -----------------------
     try {
-        // Show touch controls only on touch-capable devices (mobile/tablet)
         const controlsEl = document.getElementById('controls');
-        if (controlsEl) {
-            const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
-            controlsEl.style.display = isTouch ? 'flex' : 'none';
+        if(controlsEl){
+            const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints>0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+            controlsEl.style.display = isTouch?'flex':'none';
         }
-    } catch (e) { }
+    } catch(e){}
 
-    if (scoreText) scoreText.setVisible(true);
-    if (difficultyText) difficultyText.setVisible(true);
-    if (soundToggleContainer) soundToggleContainer.setVisible(true);
-    if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(true)); // updateHeartsPhaserで制御されるため、ここは不要かもしれません
+    // -----------------------
+    // 6. HUD表示
+    // -----------------------
+    if(scoreText) scoreText.setVisible(true);
+    if(difficultyText) difficultyText.setVisible(true);
+    if(soundToggleContainer) soundToggleContainer.setVisible(true);
+    if(heartImages.length>0) heartImages.forEach(h=>h.setVisible(true));
 
-    // start drop timer & events
-    // Use non-reset behavior so initial drop interval is scaled by speedLevel (matches ham.js)
-    adjustDropRate(true, scene); // 既存のタイマーをリセット（再生成）する挙動を強制する
-    clearEventTimers(); scheduleEvents(scene);
+    // -----------------------
+    // 7. dropTimer / イベント生成
+    // -----------------------
+    adjustDropRate(true, scene);       // minSpeed にリセットしてタイマー再生成
+    clearEventTimers();
+    scheduleEvents(scene);             // Katakanaイベント含む
 
-    // BGM: only start if not muted and game is running
-    try {
-        if (!isMuted) {
-            try { if (scene._bgm) { try { scene._bgm.stop(); } catch (e) { } scene._bgm.destroy && scene._bgm.destroy(); scene._bgm = null; } } catch (e) { }
-            if (setting.bgmKey) {
-                try { scene._bgm = scene.sound.add(setting.bgmKey, { loop: true, volume: 0.1 }); scene._bgm.play(); } catch (e) { }
-            }
-        }
-    } catch (e) { }
+    // -----------------------
+    // 8. BGM再生
+    // -----------------------
+    if(!isMuted && setting.bgmKey){
+        try {
+            scene._bgm = scene.sound.add(setting.bgmKey, {loop:true, volume:0.1});
+            scene._bgm.play();
+        } catch(e){}
+    }
 
-    updateHeartsPhaser(); updateScorePhaser();
+    // -----------------------
+    // 9. UI更新
+    // -----------------------
+    updateHeartsPhaser();
+    updateScorePhaser();
 }
 
 function endGame(status) {
