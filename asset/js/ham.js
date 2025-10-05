@@ -550,6 +550,7 @@ function update(time, delta) {
     if (scoreText) {
         scoreText.setText('スコア: ' + score + '点');
     }
+
 }
 
 
