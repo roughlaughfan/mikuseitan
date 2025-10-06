@@ -256,7 +256,7 @@ let itemsGroup = null; // group for falling items
 let itemPool = [];
 let score = 0;
 let lives = 3;
-let clearscore = 100;
+let clearscore = 10000000000;
 let scoreText;
 let difficultyText;
 let heartImages = [];
