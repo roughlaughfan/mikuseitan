@@ -327,6 +327,7 @@ function create() {
         initBackgroundLoop(currentDifficulty);
         document.getElementById('difficultyModal_phaser').style.display = 'none';
         startGame(scene);
+        gamePaused = false;
     }));
     const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); resetBackgroundLoop(); startGame(scene); });
     const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
@@ -421,6 +422,7 @@ function create() {
     updateHeartsPhaser(); updateScorePhaser(); // Phaser用に修正した関数を呼ぶ
     // bind sound toggle button (DOM版は不要)
     // bindSoundToggle(); 
+    gamePaused = true;
 
 }
 
@@ -548,6 +550,7 @@ function update(time, delta) {
     if (scoreText) {
         scoreText.setText('スコア: ' + score + '点');
     }
+
 }
 
 
@@ -918,7 +921,7 @@ function startGame(scene) {
     // -----------------------
     score = 0; lives = 3; isInvincible = false; blinkFrame = 0;
     accumulatedGameTime = 0;
-    gamePaused = false;
+    // gamePaused = false;
     inKatakanaEvent = false;
     try { itemsGroup.getChildren().forEach(it=>recycleItem(it)); } catch(e){}
 
