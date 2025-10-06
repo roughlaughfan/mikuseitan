@@ -28,10 +28,6 @@ const SOUND_PATHS = {
     se: 'asset/sounds/konami_se.mp3'
 };
 
-// ====== DOM 要素 ======
-// const difficultyDisplay = document.getElementById('difficultyDisplay');
-// const heartsDiv = document.getElementById('hearts');
-// const scoreDiv = document.getElementById('score');
 
 // ====== カタカナパターン（ham.js から移植） ======
 const katakanaPatterns = {
@@ -581,10 +577,6 @@ function update(time, delta) {
     }
 
 }
-
-
-
-
 
 // collision helper
 function rectsOverlap(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
