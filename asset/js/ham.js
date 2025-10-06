@@ -284,6 +284,7 @@ let pauseAccumulated = 0;   // 累積ポーズ時間
 
 let pauseTime = 0; // ポーズしたシステム時刻 (Date.now()) を記録
 
+let eventLoopCount = 0; // 👈 この変数を追加
 
 
 // timers & events
@@ -653,10 +654,19 @@ function spawnItem(scene) {
 
 function spawnPatternRow(scene) {
     const itemW = 30;
-    const cols = Math.floor(480 / itemW);
-    const hole = Math.floor(Math.random() * (cols - 2));
+    const cols = Math.floor(480 / itemW); // 16列
+
+    // 【修正点 A】初回ループ（eventLoopCount === 0）かどうかで穴のサイズを決定
+    const holeSize = eventLoopCount === 0 ? 8 : 3;
+    
+    // 【修正点 B】穴の開始位置を計算 (cols - holeSize の部分で holeSize が定義されている必要があります)
+    const hole = Math.floor(Math.random() * (cols - holeSize)); 
+    
     for (let i = 0; i < cols; i++) {
-        if (i < hole || i > hole + 2) allocateItem(scene, 'bomb', i * itemW, -itemW);
+        // 【修正点 C】穴の範囲外であれば爆弾を配置
+        if (i < hole || i >= hole + holeSize) { 
+            allocateItem(scene, 'bomb', i * itemW, -itemW);
+        }
     }
 }
 
@@ -725,6 +735,7 @@ function scheduleEvents(scene) {
                     eventTimers.push(t);
 
                     katakanaPatternIndex = (katakanaPatternIndex + 1) % setting.katakanaWords.length;
+                    eventLoopCount++;
                 }
             };
 
