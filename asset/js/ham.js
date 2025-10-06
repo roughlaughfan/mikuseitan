@@ -1005,7 +1005,7 @@ function startGame(scene) {
     // -----------------------
     if (!isMuted && setting.bgmKey) {
         try {
-            scene._bgm = scene.sound.add(setting.bgmKey, { loop: true, volume: 0.1 });
+            scene._bgm = scene.sound.add(setting.bgmKey, { loop: true, volume: 0.3 });
             scene._bgm.play();
         } catch (e) { }
     }
