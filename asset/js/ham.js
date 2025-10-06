@@ -126,6 +126,10 @@ let activeLayer = 0;
 let currentBgIndex = 0;
 let remainingTime = 0;
 
+const bgInterval = 10000;
+const BG_INTERVAL = 10000;
+let lastChangeTime = 0;
+
 // ====== 難易度開始時に初期化 ======
 function initBackgroundLoop(difficulty) {
     const d_setting = difficultySettings[difficulty];
@@ -134,39 +138,50 @@ function initBackgroundLoop(difficulty) {
     // 難易度から開始インデックスを決定（1→0, 2→1, 3→2）
     currentBgIndex = difficulty - 1;
     if (currentBgIndex < 0 || currentBgIndex >= backgroundList.length) {
-        currentBgIndex = 0; // 保険
+        currentBgIndex = 0;
     }
 
     const d_bg1 = document.querySelector('#bgLayer .bg1');
     const d_bg2 = document.querySelector('#bgLayer .bg2');
 
     // 初期化（bg1を表示）
-    d_bg1.style.backgroundImage = `url(${backgroundList[currentBgIndex]})`;
-    d_bg1.classList.add('active');
-    d_bg2.classList.remove('active');
+    if (d_bg1) d_bg1.style.backgroundImage = `url(${backgroundList[currentBgIndex]})`;
+    if (d_bg1) d_bg1.classList.add('active');
+    if (d_bg2) d_bg2.classList.remove('active');
 
     activeLayer = 0;
 
-    clearInterval(bgIntervalId);
+    // 既存のタイマーをクリア
     clearTimeout(bgTimeoutId);
-    lastChangeTime = Date.now();
+    bgTimeoutId = null;
 
-    bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
+    lastChangeTime = Date.now();
+    remainingTime = bgInterval; // 初回は丸ごと待つ
+
+    // 次の切替を予約（setTimeout方式に統一）
+    bgTimeoutId = setTimeout(changeBackgroundWithCrossfade, bgInterval);
 }
 
-// ====== 一時停止からの復帰用 ======
-function resumeBackgroundLoop() {
-    if (bgIntervalId) return;
+// ====== ポーズ用 ======
+function pauseBackgroundLoop() {
+    if (bgTimeoutId) {
+        clearTimeout(bgTimeoutId);
+        bgTimeoutId = null;
+        // 残り時間を計算（経過=現在 - 最終切替時刻）
+        const elapsed = Date.now() - lastChangeTime;
+        remainingTime = Math.max(0, bgInterval - elapsed);
+    }
+}
 
+// ====== ポーズ解除用 ======
+function resumeBackgroundLoop() {
+    if (bgTimeoutId) return; // 既に動いているなら何もしない
     if (remainingTime > 0) {
-        // 残り時間だけ待ってからループ再開
         bgTimeoutId = setTimeout(() => {
             changeBackgroundWithCrossfade();
-            bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
         }, remainingTime);
     } else {
-        // すぐ再開
-        bgIntervalId = setInterval(changeBackgroundWithCrossfade, 10000);
+        bgTimeoutId = setTimeout(changeBackgroundWithCrossfade, bgInterval);
     }
 }
 
@@ -181,21 +196,26 @@ function changeBackgroundWithCrossfade() {
     const nextLayer = activeLayer === 0 ? d_bg2 : d_bg1;
     const prevLayer = activeLayer === 0 ? d_bg1 : d_bg2;
 
-    nextLayer.style.backgroundImage = `url(${d_nextBg})`;
-    nextLayer.classList.add('active');
-    prevLayer.classList.remove('active');
+    if (nextLayer) nextLayer.style.backgroundImage = `url(${d_nextBg})`;
+    if (nextLayer) nextLayer.classList.add('active');
+    if (prevLayer) prevLayer.classList.remove('active');
 
     activeLayer = activeLayer === 0 ? 1 : 0;
     lastChangeTime = Date.now();
+    remainingTime = bgInterval;
+
+    // 次の切替を予約
+    clearTimeout(bgTimeoutId);
+    bgTimeoutId = setTimeout(changeBackgroundWithCrossfade, bgInterval);
 }
 
+
+// ====== 完全リセット ======
 function resetBackgroundLoop(fullReset = true) {
-    if (bgIntervalId) {
-        clearInterval(bgIntervalId);
-        bgIntervalId = null;
+    if (bgTimeoutId) {
+        clearTimeout(bgTimeoutId);
+        bgTimeoutId = null;
     }
-    clearTimeout(bgTimeoutId);
-    bgTimeoutId = null;
 
     const d_bg1 = document.querySelector('#bgLayer .bg1');
     const d_bg2 = document.querySelector('#bgLayer .bg2');
@@ -212,6 +232,8 @@ function resetBackgroundLoop(fullReset = true) {
     if (fullReset) {
         currentBgIndex = 0;
         activeLayer = 0;
+        remainingTime = 0;
+        lastChangeTime = 0;
     }
 }
 
@@ -324,12 +346,13 @@ function create() {
 
     document.querySelectorAll('.diffBtn_phaser').forEach(btn => btn.addEventListener('click', (e) => {
         currentDifficulty = parseInt(e.target.dataset.level);
+        resetBackgroundLoop();
         initBackgroundLoop(currentDifficulty);
         document.getElementById('difficultyModal_phaser').style.display = 'none';
         startGame(scene);
         gamePaused = false;
     }));
-    const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); resetBackgroundLoop(); startGame(scene); });
+    const retryBtn = document.getElementById('retryBtn_phaser'); if (retryBtn) retryBtn.addEventListener('click', () => { stopAllSounds(scene); gamePaused = false; resetBackgroundLoop(); initBackgroundLoop(currentDifficulty); startGame(scene); });
     const backToStartBtn = document.getElementById('backToStartBtn_phaser'); if (backToStartBtn) backToStartBtn.addEventListener('click', () => { document.getElementById('gameOverScreen').style.display = 'none'; document.getElementById('startScreen').style.display = 'flex'; });
 
     // touch controls
@@ -477,7 +500,7 @@ function update(time, delta) {
         if (!gamePaused && (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE))) {
             playerJump(scene);
         }
-    } catch (e) {}
+    } catch (e) { }
 
     // -----------------------
     // 4. 重力適用
@@ -528,7 +551,7 @@ function update(time, delta) {
             it.y += spd * deltaScale;
 
             if (it.active && rectsOverlap({ x: player.x, y: player.y, w: player.width, h: player.height },
-                                         { x: it.x, y: it.y, w: it.displayWidth, h: it.displayHeight })) {
+                { x: it.x, y: it.y, w: it.displayWidth, h: it.displayHeight })) {
                 const type = it.getData('type') || 'candy';
                 if (type === 'bomb' && isInvincible) continue;
                 handleItemCollision(type);
@@ -807,9 +830,10 @@ function pauseGameForTab() {
     gamePaused = true;
 
     if (dropTimer) dropTimer.paused = true;
-    eventTimers.forEach(t => { try { t.paused = true; } catch(e){ } });
+    eventTimers.forEach(t => { try { t.paused = true; } catch (e) { } });
     pauseBgTimeouts();
     pauseAllSoundsForPause(game.scene.scenes[0]);
+    pauseBackgroundLoop();
 }
 
 function resumeGameForTab() {
@@ -817,9 +841,10 @@ function resumeGameForTab() {
     gamePaused = false;
 
     if (dropTimer) dropTimer.paused = false;
-    eventTimers.forEach(t => { try { t.paused = false; } catch(e){ } });
+    eventTimers.forEach(t => { try { t.paused = false; } catch (e) { } });
     resumeBgTimeouts();
     resumeAllSoundsForPause(game.scene.scenes[0]);
+    resumeBackgroundLoop();
 }
 
 // ---- BGM/SFX 一時停止・復帰 ----
@@ -875,18 +900,18 @@ function startGame(scene) {
     // -----------------------
     // 1. 既存タイマー・SFX の完全クリア
     // -----------------------
-    try { if (dropTimer) { dropTimer.remove(false); dropTimer = null; } } catch (e) {}
+    try { if (dropTimer) { dropTimer.remove(false); dropTimer = null; } } catch (e) { }
     clearEventTimers();
-    try { if (invincibleTimer) { clearTimeout(invincibleTimer); invincibleTimer = null; isInvincible = false; } } catch (e) {}
-    try { if (scene._bgm) { try { scene._bgm.stop(); } catch(e){} scene._bgm.destroy && scene._bgm.destroy(); scene._bgm = null; } } catch(e) {}
-    try { if (scene._activeSfx) { scene._activeSfx.forEach(s => { try{s.stop && s.stop();} catch(e){} }); scene._activeSfx = []; } } catch(e) {}
-    try { clearAllItems(scene); } catch(e) {}
+    try { if (invincibleTimer) { clearTimeout(invincibleTimer); invincibleTimer = null; isInvincible = false; } } catch (e) { }
+    try { if (scene._bgm) { try { scene._bgm.stop(); } catch (e) { } scene._bgm.destroy && scene._bgm.destroy(); scene._bgm = null; } } catch (e) { }
+    try { if (scene._activeSfx) { scene._activeSfx.forEach(s => { try { s.stop && s.stop(); } catch (e) { } }); scene._activeSfx = []; } } catch (e) { }
+    try { clearAllItems(scene); } catch (e) { }
 
     // -----------------------
     // 2. 画面非表示
     // -----------------------
-    ['startScreen','gameOverScreen','difficultyModal_phaser'].forEach(id=>{
-        try{ document.getElementById(id).style.display='none'; } catch(e){}
+    ['startScreen', 'gameOverScreen', 'difficultyModal_phaser'].forEach(id => {
+        try { document.getElementById(id).style.display = 'none'; } catch (e) { }
     });
 
     // -----------------------
@@ -905,11 +930,11 @@ function startGame(scene) {
     katakanaWords = setting.katakanaWords;
     katakanaPatternIndex = 0;
 
-    try { document.getElementById('bgLayer').style.backgroundImage = `url(${setting.defaultBg})`; } catch(e){}
+    try { document.getElementById('bgLayer').style.backgroundImage = `url(${setting.defaultBg})`; } catch (e) { }
 
     // bgLayer2 初期化
     const bgLayer2 = document.getElementById('bgLayer2');
-    if(bgLayer2){
+    if (bgLayer2) {
         bgLayer2.style.display = "none";
         bgLayer2.style.zIndex = "-1";
         bgLayer2.style.backgroundImage = "url('asset/images/t.png')";
@@ -923,29 +948,29 @@ function startGame(scene) {
     accumulatedGameTime = 0;
     // gamePaused = false;
     inKatakanaEvent = false;
-    try { itemsGroup.getChildren().forEach(it=>recycleItem(it)); } catch(e){}
+    try { itemsGroup.getChildren().forEach(it => recycleItem(it)); } catch (e) { }
 
     // プレイヤー位置・速度リセット
-    try { if(player){ player.x=240; player.y=580; player.dy=0; player.onGround=true; } } catch(e){}
+    try { if (player) { player.x = 240; player.y = 580; player.dy = 0; player.onGround = true; } } catch (e) { }
 
     // -----------------------
     // 5. タッチ操作UI
     // -----------------------
     try {
         const controlsEl = document.getElementById('controls');
-        if(controlsEl){
-            const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints>0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
-            controlsEl.style.display = isTouch?'flex':'none';
+        if (controlsEl) {
+            const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+            controlsEl.style.display = isTouch ? 'flex' : 'none';
         }
-    } catch(e){}
+    } catch (e) { }
 
     // -----------------------
     // 6. HUD表示
     // -----------------------
-    if(scoreText) scoreText.setVisible(true);
-    if(difficultyText) difficultyText.setVisible(true);
-    if(soundToggleContainer) soundToggleContainer.setVisible(true);
-    if(heartImages.length>0) heartImages.forEach(h=>h.setVisible(true));
+    if (scoreText) scoreText.setVisible(true);
+    if (difficultyText) difficultyText.setVisible(true);
+    if (soundToggleContainer) soundToggleContainer.setVisible(true);
+    if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(true));
 
     // -----------------------
     // 7. dropTimer / イベント生成
@@ -957,11 +982,11 @@ function startGame(scene) {
     // -----------------------
     // 8. BGM再生
     // -----------------------
-    if(!isMuted && setting.bgmKey){
+    if (!isMuted && setting.bgmKey) {
         try {
-            scene._bgm = scene.sound.add(setting.bgmKey, {loop:true, volume:0.1});
+            scene._bgm = scene.sound.add(setting.bgmKey, { loop: true, volume: 0.1 });
             scene._bgm.play();
-        } catch(e){}
+        } catch (e) { }
     }
 
     // -----------------------
@@ -1017,6 +1042,9 @@ function endGame(status) {
     }
 
     document.getElementById('gameOverScreen').style.display = 'flex';
+
+    pauseBackgroundLoop();       // 背景クロスフェード停止
+    gamePaused = true;
 
 }
 
@@ -1364,10 +1392,10 @@ function pauseGameForTab() {
 
     // clear interval-based background loop if running (remember to restart)
     try {
-        if (bgIntervalId) {
+        if (bgTimeoutId) {
             bgIntervalWasRunning = true;
-            clearInterval(bgIntervalId);
-            bgIntervalId = null;
+            clearInterval(bgTimeoutId);
+            bgTimeoutId = null;
         } else {
             bgIntervalWasRunning = false;
         }
