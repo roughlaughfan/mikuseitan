@@ -77,8 +77,12 @@ const difficultySettings = {
         bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
         katakanaWords: [
-            ["サ", "シ", "ミ", "ス", "キ"],
-            ["ト", "ウ", "シ", "デ", "チ", "ャ", "ー", "ジ"]
+                ["フ", "ジ", "サ", "キ", "ミ", "ク"],
+                ["セ", "イ", "タ", "ン", "サ", "イ"],
+                ["2", "0", "2", "5"],
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"]
         ]
     },
     2: {
@@ -90,8 +94,12 @@ const difficultySettings = {
         bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
         katakanaWords: [
-            ["ミ", "ス", "タ", "ー", "チ", "ャ", "ン", "ス"],
-            ["ビ", "ジ", "ン", "ト", "ク"]
+                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
+                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
+                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"]
         ]
     },
     1: {
