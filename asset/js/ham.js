@@ -200,9 +200,16 @@ function changeBackgroundWithCrossfade() {
     const nextLayer = activeLayer === 0 ? d_bg2 : d_bg1;
     const prevLayer = activeLayer === 0 ? d_bg1 : d_bg2;
 
-    if (nextLayer) nextLayer.style.backgroundImage = `url(${d_nextBg})`;
-    if (nextLayer) nextLayer.classList.add('active');
-    if (prevLayer) prevLayer.classList.remove('active');
+    // 次の背景を設定してフェードイン
+    if (nextLayer) {
+        nextLayer.style.backgroundImage = `url(${d_nextBg})`;
+        nextLayer.classList.add('active');
+    }
+
+    // ★ ここがポイント：前のレイヤーは少し遅れてフェードアウト
+    setTimeout(() => {
+        if (prevLayer) prevLayer.classList.remove('active');
+    }, 1500); // ← フェード時間3s
 
     activeLayer = activeLayer === 0 ? 1 : 0;
     lastChangeTime = Date.now();
