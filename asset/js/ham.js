@@ -256,7 +256,7 @@ let itemsGroup = null; // group for falling items
 let itemPool = [];
 let score = 0;
 let lives = 3;
-let clearscore = 10000000000;
+let clearscore = 100;
 let scoreText;
 let difficultyText;
 let heartImages = [];
@@ -388,7 +388,9 @@ function create() {
 
     if (jumpBtn) {
         jumpBtn.addEventListener('pointerdown', () => {
-            if (gameRunning()) playerJump(scene);
+            // ゲーム中でなければ無反応（音も出さない）
+            if (!gameRunning()) return;
+            playerJump(scene);
         });
     }
     // 【1. スコア表示 (#score)】
@@ -497,7 +499,10 @@ function update(time, delta) {
     // 3. ジャンプ判定
     // -----------------------
     try {
-        if (!gamePaused && (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE))) {
+        if (
+            gameRunning() && // ←追加！ゲーム中以外では無効
+            (Phaser.Input.Keyboard.JustDown(keys.UP) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(keys.SPACE))
+        ) {
             playerJump(scene);
         }
     } catch (e) { }
@@ -837,6 +842,11 @@ function pauseGameForTab() {
 }
 
 function resumeGameForTab() {
+    if (!gameRunning()) {
+        console.log('非アクティブ復帰：ゲーム中ではないため入力無効');
+        return;
+    }
+
     if (!gamePaused) return;
     gamePaused = false;
 
@@ -1011,7 +1021,6 @@ function endGame(status) {
     if (soundToggleContainer) soundToggleContainer.setVisible(false);
     if (heartImages.length > 0) heartImages.forEach(h => h.setVisible(false));
 
-    playSound('gameover');
     document.getElementById('endTitle').textContent = status;
 
     // スコア表示を「億」「万」付きに
@@ -1019,6 +1028,8 @@ function endGame(status) {
 
     // スコア100億以上ならclear_imgを表示
     if (score >= clearscore) {
+        playSound('clear'); // ← ここでクリア音を再生（例："clear"）
+
         document.querySelector('#gameOverScreen .clear_img').style.display = 'block';
         document.getElementById('gameOverScreen').style.backgroundImage = "url('asset/images/clear.png')";
 
@@ -1030,6 +1041,8 @@ function endGame(status) {
             // ↑ ここに新しい画像ファイルのパスを指定します。
         }
     } else {
+        playSound('gameover'); // 通常のゲームオーバー音
+
         document.querySelector('#gameOverScreen .clear_img').style.display = 'none';
         document.getElementById('gameOverScreen').style.backgroundImage = "url('asset/images/gameover.png')";
         const clearImageElement = document.getElementById('clearImage');
@@ -1193,6 +1206,7 @@ function showBillionAchievement(scene) {
 }
 
 function playerJump(scene) {
+    if (!gameRunning()) return; // ←ここでも防御
     if (player.onGround) { player.dy = -15; player.onGround = false; playSound('jump'); }
 }
 
@@ -1356,17 +1370,31 @@ window._phaserGame = { game };
 // --- visibility/blur listeners をここで登録（IIFE 内で定義済みの関数にアクセス可能） ---
 (function registerVisibilityHandlers() {
 
+    function shouldStayPaused() {
+        const startVisible = document.getElementById('startScreen')?.style.display === 'flex';
+        const overVisible = document.getElementById('gameOverScreen')?.style.display === 'flex';
+        const modalVisible = document.getElementById('difficultyModal_phaser')?.style.display === 'block';
+        // いずれかの画面が出ているときは「常にポーズ」
+        return startVisible || overVisible || modalVisible;
+    }
+
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) pauseGameForTab(); else resumeGameForTab();
+        if (document.hidden) {
+            pauseGameForTab();
+        } else {
+            if (!shouldStayPaused()) resumeGameForTab();
+        }
     });
 
     // blur / focus は補助的に（モバイルや一部ブラウザの挙動に備える）
     window.addEventListener('blur', () => {
         pauseGameForTab();
     });
+
     window.addEventListener('focus', () => {
-        resumeGameForTab();
+        if (!shouldStayPaused()) resumeGameForTab();
     });
+
 })();
 
 // -------------------------------------------
@@ -1415,6 +1443,17 @@ function pauseGameForTab() {
         }
     } catch (e) { }
 
+    // ★ プレイヤーの動作を停止（速度リセット＆移動入力を無効化）
+    try {
+        if (player) {
+            if (player.body) {
+                player.body.setVelocity(0, 0);
+                player.body.moves = false; // 物理的な移動も止める
+            }
+            player.canMove = false; // 独自制御フラグがある場合に備える
+        }
+    } catch (e) { }
+
     // optional overlay
     try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'flex'; } catch (e) { }
 }
@@ -1455,6 +1494,17 @@ function resumeGameForTab() {
             scene.physics.world.resume();
         }
     } catch (e) { }
+
+    // ★ プレイヤーの動作を再開
+    try {
+        if (player) {
+            if (player.body) {
+                player.body.moves = true;
+            }
+            player.canMove = true; // 独自制御フラグがある場合
+        }
+    } catch (e) { }
+
 
     // optional overlay hide
     try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'none'; } catch (e) { }
