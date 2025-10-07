@@ -69,8 +69,8 @@ const katakanaPatterns = {
 // ====== 難易度設定（ham.js と同一） ======
 const difficultySettings = {
     3: {
-        displayName: '難しい', // 追加: 難易度表示用
-        sharePrefix: '【難しいレベル】', // 追加: Xシェア用
+        displayName: 'むずかしい', // 追加: 難易度表示用
+        sharePrefix: '【むずかしい】', // 追加: Xシェア用
         minSpeed: 6, speedInterval: 20,
         dropIntervalBase: 1000, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg.png',
@@ -86,8 +86,8 @@ const difficultySettings = {
         ]
     },
     2: {
-        displayName: '普通', // 追加: 難易度表示用
-        sharePrefix: '【普通レベル】', // 追加: Xシェア用
+        displayName: 'ふつう', // 追加: 難易度表示用
+        sharePrefix: '【ふつう】', // 追加: Xシェア用
         minSpeed: 4, speedInterval: 20,
         dropIntervalBase: 1000, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg02.png',
@@ -103,8 +103,8 @@ const difficultySettings = {
         ]
     },
     1: {
-        displayName: '簡単', // 追加: 難易度表示用
-        sharePrefix: '【簡単レベル】', // 追加: Xシェア用
+        displayName: 'かんたん', // 追加: 難易度表示用
+        sharePrefix: '【かんたん】', // 追加: Xシェア用
         minSpeed: 2, speedInterval: 30,
         dropIntervalBase: 1200, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg03.png',
@@ -1307,7 +1307,7 @@ function bindShareButtons() {
     // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
     const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
     const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
-    const gameUrl = encodeURIComponent('https://www.google.com');
+    const gameUrl = encodeURIComponent('https://roughlaughfan.github.io/mikuseitan/');
     const hashtags = ["牡蠣サーモンキャッチゲーム", "テストプレイ", "HTML5ゲーム"];
     const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
