@@ -94,12 +94,12 @@ const difficultySettings = {
         bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
         katakanaWords: [
-                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
-                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
-                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
                 ["ミ", "ク", "チ", "ャ", "ン"],
                 ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
-                ["オ", "メ", "デ", "ト", "ウ"]
+                ["オ", "メ", "デ", "ト", "ウ"],
+                ["フ", "ジ", "サ", "キ", "ミ", "ク"],
+                ["セ", "イ", "タ", "ン", "サ", "イ"],
+                ["2", "0", "2", "5"]
         ]
     },
     1: {
@@ -111,8 +111,12 @@ const difficultySettings = {
         bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
         katakanaWords: [
-            ["ハ", "サ", "ミ", "ト", "イ", "ス"],
-            ["シ", "ュ", "ウ", "ト", "ク"]
+                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
+                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
+                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"]
         ]
     }
 };
