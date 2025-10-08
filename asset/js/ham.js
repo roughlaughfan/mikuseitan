@@ -77,12 +77,12 @@ const difficultySettings = {
         bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
         katakanaWords: [
-                ["フ", "ジ", "サ", "キ", "ミ", "ク"],
-                ["セ", "イ", "タ", "ン", "サ", "イ"],
-                ["2", "0", "2", "5"],
-                ["ミ", "ク", "チ", "ャ", "ン"],
-                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
-                ["オ", "メ", "デ", "ト", "ウ"]
+            ["フ", "ジ", "サ", "キ", "ミ", "ク"],
+            ["セ", "イ", "タ", "ン", "サ", "イ"],
+            ["2", "0", "2", "5"],
+            ["ミ", "ク", "チ", "ャ", "ン"],
+            ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+            ["オ", "メ", "デ", "ト", "ウ"]
         ]
     },
     2: {
@@ -94,12 +94,12 @@ const difficultySettings = {
         bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
         katakanaWords: [
-                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
-                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
-                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
-                ["ミ", "ク", "チ", "ャ", "ン"],
-                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
-                ["オ", "メ", "デ", "ト", "ウ"]
+            ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
+            ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
+            ["エ", "キ", "コ", "ウ", "ナ", "イ"],
+            ["ミ", "ク", "チ", "ャ", "ン"],
+            ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+            ["オ", "メ", "デ", "ト", "ウ"]
         ]
     },
     1: {
@@ -166,20 +166,69 @@ function initBackgroundLoop(difficulty) {
     bgTimeoutId = setTimeout(changeBackgroundWithCrossfade, bgInterval);
 }
 
-// ====== ポーズ用 ======
+// ===== ポーズ処理 =====
 function pauseBackgroundLoop() {
     if (bgTimeoutId) {
         clearTimeout(bgTimeoutId);
         bgTimeoutId = null;
-        // 残り時間を計算（経過=現在 - 最終切替時刻）
+
         const elapsed = Date.now() - lastChangeTime;
         remainingTime = Math.max(0, bgInterval - elapsed);
+
+        // フェード途中だった場合、進行率を記録
+        if (fadeInProgress) {
+            fadeProgress = Math.min(1, (Date.now() - fadeStartTime) / fadeDuration);
+        }
     }
 }
 
-// ====== ポーズ解除用 ======
+// ===== 再開処理 =====
 function resumeBackgroundLoop() {
-    if (bgTimeoutId) return; // 既に動いているなら何もしない
+
+    // === 再開時に現在の背景状態を維持 ===
+    const d_bg1 = document.querySelector('#bgLayer .bg1');
+    const d_bg2 = document.querySelector('#bgLayer .bg2');
+    if (d_bg1 && d_bg2) {
+        const currentBg = backgroundList[currentBgIndex];
+        const nextBgIndex = (currentBgIndex + 1) % backgroundList.length;
+        const nextBg = backgroundList[nextBgIndex];
+
+        // activeLayerに応じて正しい背景をセット
+        if (activeLayer === 0) {
+            d_bg1.style.backgroundImage = `url(${currentBg})`;
+            d_bg1.classList.add('active');
+            d_bg2.style.backgroundImage = `url(${nextBg})`;
+            d_bg2.classList.remove('active');
+        } else {
+            d_bg2.style.backgroundImage = `url(${currentBg})`;
+            d_bg2.classList.add('active');
+            d_bg1.style.backgroundImage = `url(${nextBg})`;
+            d_bg1.classList.remove('active');
+        }
+    }
+
+    if (bgTimeoutId) return;
+
+    // フェード途中から再開
+    if (fadeInProgress && fadeProgress < 1) {
+        const remainingFade = fadeDuration * (1 - fadeProgress);
+        const prevLayer = activeLayer === 0
+            ? document.querySelector('#bgLayer .bg2')
+            : document.querySelector('#bgLayer .bg1');
+
+        // 残りフェード時間でopacityを補完
+        if (prevLayer) {
+            prevLayer.style.transition = `opacity ${remainingFade}ms ease-in-out`;
+        }
+
+        setTimeout(() => {
+            if (prevLayer) prevLayer.classList.remove('active');
+            fadeInProgress = false;
+            fadeProgress = 0;
+        }, remainingFade);
+    }
+
+    // 残り時間から再開
     if (remainingTime > 0) {
         bgTimeoutId = setTimeout(() => {
             changeBackgroundWithCrossfade();
@@ -189,8 +238,18 @@ function resumeBackgroundLoop() {
     }
 }
 
+// ===== グローバル変数追加 =====
+let fadeStartTime = 0;
+let fadeDuration = 3000; // CSSと一致させる
+let fadeInProgress = false;
+let fadeProgress = 0; // 0〜1で進行率を記録
 
+// ===== 背景クロスフェード =====
 function changeBackgroundWithCrossfade() {
+    fadeInProgress = true;
+    fadeStartTime = Date.now();
+    fadeProgress = 0;
+
     currentBgIndex = (currentBgIndex + 1) % backgroundList.length;
     const d_nextBg = backgroundList[currentBgIndex];
 
@@ -206,18 +265,26 @@ function changeBackgroundWithCrossfade() {
         nextLayer.classList.add('active');
     }
 
-    // ★ ここがポイント：前のレイヤーは少し遅れてフェードアウト
+    // 前のレイヤーは少し遅れてフェードアウト
+    const fadeOutDelay = fadeDuration / 2;
     setTimeout(() => {
         if (prevLayer) prevLayer.classList.remove('active');
-    }, 1500); // ← フェード時間3s
+    }, fadeOutDelay);
 
+    // 状態更新
     activeLayer = activeLayer === 0 ? 1 : 0;
     lastChangeTime = Date.now();
     remainingTime = bgInterval;
 
-    // 次の切替を予約
+    // 次の切替予約
     clearTimeout(bgTimeoutId);
     bgTimeoutId = setTimeout(changeBackgroundWithCrossfade, bgInterval);
+
+    // フェード完了時にフラグを戻す
+    setTimeout(() => {
+        fadeInProgress = false;
+        fadeProgress = 0;
+    }, fadeDuration);
 }
 
 
@@ -245,6 +312,10 @@ function resetBackgroundLoop(fullReset = true) {
         activeLayer = 0;
         remainingTime = 0;
         lastChangeTime = 0;
+    }
+    const bgLayer = document.getElementById('bgLayer');
+    if (bgLayer) {
+        bgLayer.removeAttribute('data-initialized');
     }
 }
 
@@ -665,13 +736,13 @@ function spawnPatternRow(scene) {
 
     // 【修正点 A】初回ループ（eventLoopCount === 0）かどうかで穴のサイズを決定
     const holeSize = eventLoopCount === 0 ? 8 : 3;
-    
+
     // 【修正点 B】穴の開始位置を計算 (cols - holeSize の部分で holeSize が定義されている必要があります)
-    const hole = Math.floor(Math.random() * (cols - holeSize)); 
-    
+    const hole = Math.floor(Math.random() * (cols - holeSize));
+
     for (let i = 0; i < cols; i++) {
         // 【修正点 C】穴の範囲外であれば爆弾を配置
-        if (i < hole || i >= hole + holeSize) { 
+        if (i < hole || i >= hole + holeSize) {
             allocateItem(scene, 'bomb', i * itemW, -itemW);
         }
     }
@@ -958,8 +1029,13 @@ function startGame(scene) {
     katakanaWords = setting.katakanaWords;
     katakanaPatternIndex = 0;
 
-    try { document.getElementById('bgLayer').style.backgroundImage = `url(${setting.defaultBg})`; } catch (e) { }
+    const bgLayer = document.getElementById('bgLayer');
 
+    // 背景がまだ初期化されていないときのみデフォルトをセット
+    if (bgLayer && !bgLayer.dataset.initialized) {
+        bgLayer.dataset.initialized = "true";
+        bgLayer.style.backgroundImage = `url(${setting.defaultBg})`;
+    }
     // bgLayer2 初期化
     const bgLayer2 = document.getElementById('bgLayer2');
     if (bgLayer2) {
