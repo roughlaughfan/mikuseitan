@@ -69,8 +69,8 @@ const katakanaPatterns = {
 // ====== 難易度設定（ham.js と同一） ======
 const difficultySettings = {
     3: {
-        displayName: '難しい', // 追加: 難易度表示用
-        sharePrefix: '【難しいレベル】', // 追加: Xシェア用
+        displayName: 'むずかしい', // 追加: 難易度表示用
+        sharePrefix: '【むずかしい】', // 追加: Xシェア用
         minSpeed: 6, speedInterval: 20,
         dropIntervalBase: 1000, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg.png',
@@ -86,33 +86,37 @@ const difficultySettings = {
         ]
     },
     2: {
-        displayName: '普通', // 追加: 難易度表示用
-        sharePrefix: '【普通レベル】', // 追加: Xシェア用
+        displayName: 'ふつう', // 追加: 難易度表示用
+        sharePrefix: '【ふつう】', // 追加: Xシェア用
         minSpeed: 4, speedInterval: 20,
         dropIntervalBase: 1000, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg02.png',
         bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
         katakanaWords: [
-            ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
-            ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
-            ["エ", "キ", "コ", "ウ", "ナ", "イ"],
-            ["ミ", "ク", "チ", "ャ", "ン"],
-            ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
-            ["オ", "メ", "デ", "ト", "ウ"]
+                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
+                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
+                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"]
         ]
     },
     1: {
-        displayName: '簡単', // 追加: 難易度表示用
-        sharePrefix: '【簡単レベル】', // 追加: Xシェア用
+        displayName: 'かんたん', // 追加: 難易度表示用
+        sharePrefix: '【かんたん】', // 追加: Xシェア用
         minSpeed: 2, speedInterval: 30,
         dropIntervalBase: 1200, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg03.png',
         bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
         katakanaWords: [
-            ["ハ", "サ", "ミ", "ト", "イ", "ス"],
-            ["シ", "ュ", "ウ", "ト", "ク"]
+                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
+                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
+                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
+                ["ミ", "ク", "チ", "ャ", "ン"],
+                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+                ["オ", "メ", "デ", "ト", "ウ"]
         ]
     }
 };
@@ -1379,7 +1383,7 @@ function bindShareButtons() {
     // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
     const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
     const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
-    const gameUrl = encodeURIComponent('https://www.google.com');
+    const gameUrl = encodeURIComponent('https://roughlaughfan.github.io/mikuseitan/');
     const hashtags = ["牡蠣サーモンキャッチゲーム", "テストプレイ", "HTML5ゲーム"];
     const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
