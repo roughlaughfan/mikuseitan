@@ -1384,7 +1384,7 @@ function bindShareButtons() {
     const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
     const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
     const gameUrl = encodeURIComponent('https://roughlaughfan.github.io/mikuseitan/');
-    const hashtags = ["牡蠣サーモンキャッチゲーム", "テストプレイ", "HTML5ゲーム"];
+    const hashtags = ["牡蠣サーモンキャッチゲーム", "藤崎団活動報告", "藤崎未来生誕祭2025"];
     const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
     const shareHandler = (e) => { // クリック時に実行される関数を定義
