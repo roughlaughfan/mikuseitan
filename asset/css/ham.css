@@ -203,7 +203,7 @@ canvas {
     margin: 0 auto;
 }
 
-.btn {
+.btn, .btn_d {
     display: block;
     width: 100%;
     background: #0054ed;
@@ -223,13 +223,13 @@ canvas {
     -webkit-touch-callout: none;
 }
 
-.btn.mada {
+.btn_d.mada {
     background: #dbdbdb;
     color: #8f8f8f;
     transition: none
 }
 
-.btn.mada:hover {
+.btn_d.mada:hover {
     opacity: 1;
 }
 
@@ -335,7 +335,8 @@ h1 {
     width: 80%;
 }
 
-.modal .btn {
+.modal .btn,
+.modal .btn_d {
     margin: 10px auto;
     width: 80%;
 
@@ -405,6 +406,7 @@ img {
     h1+p,
     h2+p,
     .btn,
+    .btn_d,
     #finalScore,
     #finalClearScore,
     .x_share {
@@ -427,7 +429,8 @@ img {
         padding: 2vh;
     }
 
-    .modal .btn {
+    .modal .btn,
+    .modal .btn_d {
         margin: 2vh auto;
     }
 
@@ -483,6 +486,7 @@ img {
     h1+p,
     h2+p,
     .btn,
+    .btn_d,
     #finalScore,
     #score,
     #finalClearScore,
@@ -490,7 +494,7 @@ img {
         font-size: 3.5vw;
     }
 
-    .btn {
+    .btn ,.btn_d {
         min-height: 3em;
     }
 
@@ -502,7 +506,7 @@ img {
         padding: 2vw 2vw 5vw;
     }
 
-    .modal .btn {
+    .modal .btn ,.modal .btn_d {
         margin: 2vw auto;
     }
 
@@ -541,6 +545,7 @@ img {
     h1+p,
     h2+p,
     .btn,
+    .btn_d,
     #score,
     #finalScore,
     #finalClearScore,
