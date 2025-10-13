@@ -89,17 +89,19 @@
 </div>
 
 <script>
-// Safari拡大鏡防止オーバーレイ
+// 常時Safari拡大鏡を封じるオーバーレイ
 (function() {
   const overlay = document.createElement('div');
   overlay.className = 'noMagnifierOverlay';
   document.body.appendChild(overlay);
 
-  // 一定時間後に自動削除（操作が始まったら外す）
-  const removeOverlay = () => overlay.remove();
-  ['touchstart','mousedown','pointerdown'].forEach(ev => {
-    window.addEventListener(ev, removeOverlay, { once: true, passive: true });
-  });
+  // 常に最前面に維持（他のDOM操作で後ろに回らないように）
+  const keepFront = () => {
+    if (document.body.lastChild !== overlay) {
+      document.body.appendChild(overlay);
+    }
+  };
+  setInterval(keepFront, 500); // 0.5秒ごとに前面維持
 })();
 </script>
 

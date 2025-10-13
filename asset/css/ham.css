@@ -379,8 +379,9 @@ body, #main, #main_wrap, #controls , .ctrl-btn {
 .noMagnifierOverlay {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 2147483647; /* 最前面 */
   background: transparent;
+  /* ↓クリックやタップは透過させる */
   pointer-events: none;
   touch-action: none;
 }
