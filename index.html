@@ -90,26 +90,15 @@
 
 <script>
 // iOS Safariの拡大鏡・コピー・ズーム抑制
-document.addEventListener('touchstart', (e) => {
-  if (e.touches.length > 1) {
-    // ピンチズーム無効
-    e.preventDefault();
-  }
+const target = document.body; // または #game-screen など
+target.addEventListener('touchstart', (e) => {
+  if (e.touches.length > 1) e.preventDefault();
 }, { passive: false });
-
-document.addEventListener('gesturestart', (e) => {
-  e.preventDefault();
-});
-
-// ダブルタップ後の長押し拡大鏡対策
-let lastTouchEnd = 0;
-document.addEventListener('touchend', (e) => {
+target.addEventListener('gesturestart', (e) => e.preventDefault());
+target.addEventListener('touchend', (e) => {
   const now = Date.now();
-  if (now - lastTouchEnd <= 300) {
-    // ダブルタップ防止
-    e.preventDefault();
-  }
-  lastTouchEnd = now;
+  if (now - (target._lastTouchEnd || 0) <= 300) e.preventDefault();
+  target._lastTouchEnd = now;
 }, { passive: false });
 </script>
 
