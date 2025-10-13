@@ -94,12 +94,12 @@ const difficultySettings = {
         bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
         bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
         katakanaWords: [
-                ["セ", "イ", "タ", "ン", "ポ", "ス", "タ", "ー"],
-                ["ト", "ウ", "キ", "ュ", "ウ", "シ", "ブ", "ヤ"],
-                ["エ", "キ", "コ", "ウ", "ナ", "イ"],
-                ["ミ", "ク", "チ", "ャ", "ン"],
-                ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
-                ["オ", "メ", "デ", "ト", "ウ"]
+            ["ミ", "ク", "チ", "ャ", "ン"],
+            ["オ", "タ", "ン", "ジ", "ョ", "ウ", "ビ"],
+            ["オ", "メ", "デ", "ト", "ウ"],
+            ["フ", "ジ", "サ", "キ", "ミ", "ク"],
+            ["セ", "イ", "タ", "ン", "サ", "イ"],
+            ["2", "0", "2", "5"]
         ]
     },
     1: {
@@ -1390,7 +1390,7 @@ function bindShareButtons() {
     const shareHandler = (e) => { // クリック時に実行される関数を定義
         const difficultyPrefix = difficultySettings[currentDifficulty]?.sharePrefix || '';
         const formattedScore = formatScoreKanji(score);
-        const scorePrefix = score >= clearscore ? '【100億点！】' : '';
+        const scorePrefix = score >= clearscore ? '【100億点達成！】' : '';
         const prefix = scorePrefix + difficultyPrefix;
 
         const shareText = encodeURIComponent(
