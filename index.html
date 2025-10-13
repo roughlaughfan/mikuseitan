@@ -89,26 +89,28 @@
 </div>
 
 <script>
-  // --- 長押し防止（前のままでOK） ---
-  let longPressTimer = null;
-  document.addEventListener('touchstart', function(e) {
-    longPressTimer = setTimeout(() => {
-      e.target.dispatchEvent(new Event('touchcancel'));
-    }, 300);
-  }, { passive: false });
-  document.addEventListener('touchend', () => clearTimeout(longPressTimer), { passive: false });
-  document.addEventListener('touchmove', () => clearTimeout(longPressTimer), { passive: false });
+// iOS Safariの拡大鏡・コピー・ズーム抑制
+document.addEventListener('touchstart', (e) => {
+  if (e.touches.length > 1) {
+    // ピンチズーム無効
+    e.preventDefault();
+  }
+}, { passive: false });
 
-  // --- ダブルタップ拡大鏡・ズーム防止 ---
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', function(e) {
-    const now = new Date().getTime();
-    if (now - lastTouchEnd <= 400) {
-      // Safariのダブルタップズーム／拡大鏡をキャンセル
-      e.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, { passive: false });
+document.addEventListener('gesturestart', (e) => {
+  e.preventDefault();
+});
+
+// ダブルタップ後の長押し拡大鏡対策
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (e) => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) {
+    // ダブルタップ防止
+    e.preventDefault();
+  }
+  lastTouchEnd = now;
+}, { passive: false });
 </script>
 
 
