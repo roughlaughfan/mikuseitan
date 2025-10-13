@@ -88,6 +88,15 @@
 <a class="ctrl-btn" id="jumpBtn">⤴</a>
 </div>
 
+<script>
+  // Safariの長押しコピー・共有メニュー完全抑止
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // 古いiOS向け: aタグ長押しでの拡大鏡を防止
+  document.querySelectorAll('a').forEach(a => {
+    a.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
+  });
+</script>
 <!-- Phaser CDN -->
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <!-- Phaserベースのゲームロジック -->
@@ -105,6 +114,6 @@
     };
     hideSplashScreen();
 </script>
-<script type="text/javascript" src="asset/js/konami.js?day=20251008"></script>
+<script type="text/javascript" src="asset/js/konami.js?day=20251013"></script>
 </body>
 </html>
