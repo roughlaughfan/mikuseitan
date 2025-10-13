@@ -89,20 +89,35 @@
 </div>
 
 <script>
-// 常時Safari拡大鏡を封じるオーバーレイ
-(function() {
-  const overlay = document.createElement('div');
-  overlay.className = 'noMagnifierOverlay';
-  document.body.appendChild(overlay);
+// iOS Safariの拡大鏡・コピー・ズーム抑制（複数要素対応）
+const targets = document.querySelectorAll('body, #main, #main_wrap, #controls, .ctrl-btn');
 
-  // 常に最前面に維持（他のDOM操作で後ろに回らないように）
-  const keepFront = () => {
-    if (document.body.lastChild !== overlay) {
-      document.body.appendChild(overlay);
+let lastTouchEnd = 0;
+targets.forEach(target => {
+  target.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) e.preventDefault(); // ピンチズーム防止
+  }, { passive: false });
+
+  target.addEventListener('gesturestart', (e) => e.preventDefault());
+
+  target.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    const targetTag = e.target.tagName.toLowerCase();
+
+    // ✅ ボタン・リンク系はクリックを阻害しない
+    const isClickable =
+      targetTag === 'a' ||
+      targetTag === 'button' ||
+      e.target.closest('a, button, .btn, .ctrl-btn');
+
+    // ✅ ダブルタップ防止のみ実施（クリック要素はスルー）
+    if (!isClickable && now - lastTouchEnd <= 400) {
+      e.preventDefault();
     }
-  };
-  setInterval(keepFront, 500); // 0.5秒ごとに前面維持
-})();
+
+    lastTouchEnd = now;
+  }, { passive: false });
+});
 </script>
 
 <!-- Phaser CDN -->
