@@ -192,17 +192,6 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
-    -webkit-user-select: none;
-    /* テキスト選択禁止 */
-    -webkit-touch-callout: none;
-    /* 長押しメニュー禁止 */
-    user-select: none;
-    touch-action: none;
-    /* ジェスチャー無効化 */
-      pointer-events: auto;
-  cursor: default;
-  text-decoration: none;
-  color: inherit;
 }
 
 #leftRight {
