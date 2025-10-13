@@ -90,16 +90,22 @@
 
 <script>
 // iOS Safariの拡大鏡・コピー・ズーム抑制
-const target = document.body; // または #game-screen など
-target.addEventListener('touchstart', (e) => {
-  if (e.touches.length > 1) e.preventDefault();
-}, { passive: false });
-target.addEventListener('gesturestart', (e) => e.preventDefault());
-target.addEventListener('touchend', (e) => {
-  const now = Date.now();
-  if (now - (target._lastTouchEnd || 0) <= 300) e.preventDefault();
-  target._lastTouchEnd = now;
-}, { passive: false });
+const targets = document.querySelectorAll('body, #main, #main_wrap , #controls'); 
+// ↑ 対象にしたい要素をカンマ区切りで指定
+
+targets.forEach(target => {
+  target.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  target.addEventListener('gesturestart', (e) => e.preventDefault());
+
+  target.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - (target._lastTouchEnd || 0) <= 300) e.preventDefault();
+    target._lastTouchEnd = now;
+  }, { passive: false });
+});
 </script>
 
 
