@@ -1056,6 +1056,7 @@ function startGame(scene) {
     accumulatedGameTime = 0;
     // gamePaused = false;
     inKatakanaEvent = false;
+    eventLoopCount = 0;
     try { itemsGroup.getChildren().forEach(it => recycleItem(it)); } catch (e) { }
 
     // プレイヤー位置・速度リセット
