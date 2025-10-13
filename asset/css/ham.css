@@ -10,6 +10,18 @@ body {
     font-style: normal;
 }
 
+html, body {
+  -webkit-user-select: none;        /* テキスト選択禁止 */
+  -webkit-touch-callout: none;      /* 長押しメニュー禁止 */
+  -webkit-tap-highlight-color: transparent; /* タップ時のハイライトを消す */
+  touch-action: manipulation;       /* ダブルタップズームなどを抑制 */
+}
+a, button {
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 #main {
     display: flex;
     justify-content: center;
