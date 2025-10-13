@@ -3,7 +3,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0" name="viewport"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <meta property="og:description" content="牡蠣とサーモンを集めてみくちゃんの生誕祭をお祝いしよう！">
 <title>牡蠣サーモンキャッチゲーム</title>
@@ -95,6 +95,18 @@
   document.addEventListener('touchstart', function (e) {
     if (e.touches.length > 1) e.preventDefault(); // ピンチズームも防止
   }, { passive: false });
+
+    // 古いSafariの残留挙動（拡大鏡・コピー）対策
+  const style = document.createElement('style');
+  style.textContent = `
+    * {
+      -webkit-user-select: none !important;
+      -webkit-touch-callout: none !important;
+      user-select: none !important;
+      touch-action: none !important;
+    }
+  `;
+  document.head.appendChild(style);
   </script>
 <!-- Phaser CDN -->
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
