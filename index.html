@@ -89,14 +89,13 @@
 </div>
 
 <script>
-  // Safariの長押しコピー・共有メニュー完全抑止
+  // Safariの長押しメニューや拡大鏡を抑止
   document.addEventListener('contextmenu', e => e.preventDefault());
-
-  // 古いiOS向け: aタグ長押しでの拡大鏡を防止
-  document.querySelectorAll('a').forEach(a => {
-    a.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
-  });
-</script>
+  document.addEventListener('selectstart', e => e.preventDefault());
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length > 1) e.preventDefault(); // ピンチズームも防止
+  }, { passive: false });
+  </script>
 <!-- Phaser CDN -->
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <!-- Phaserベースのゲームロジック -->
