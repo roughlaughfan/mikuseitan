@@ -14,7 +14,7 @@ html, body, * {
   -webkit-touch-callout: none !important;
   user-select: none !important;
   -webkit-tap-highlight-color: transparent !important;
-  touch-action: none !important;
+  touch-action: manipulation !important;
   pointer-events: auto !important; /* これを追加（操作を無効にしないため） */
 }
 
