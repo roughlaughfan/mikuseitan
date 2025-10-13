@@ -367,7 +367,7 @@ img {
     max-width: 200px;
 }
 
-body, #main, #main_wrap, #controls {
+body, #main, #main_wrap, #controls , .ctrl-btn {
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
