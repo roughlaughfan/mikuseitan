@@ -9,14 +9,6 @@ body {
     font-weight: 400;
     font-style: normal;
 }
-html, body, * {
-  -webkit-user-select: none !important;
-  -webkit-touch-callout: none !important;
-  user-select: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-  touch-action: manipulation !important;
-  pointer-events: auto !important; /* これを追加（操作を無効にしないため） */
-}
 
 #main {
     display: flex;
@@ -373,6 +365,13 @@ img {
 
 .clear_img img {
     max-width: 200px;
+}
+
+body, #main, #main_wrap, #controls {
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 @media (max-height: 639px) {
