@@ -1608,3 +1608,4 @@ function resumeGameForTab() {
     try { const p = document.getElementById('pauseOverlay'); if (p) p.style.display = 'none'; } catch (e) { }
 }
 
+document.addEventListener('contextmenu', e => e.preventDefault()); // 長押しメニュー抑止
