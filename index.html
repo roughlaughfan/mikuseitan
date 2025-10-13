@@ -93,17 +93,19 @@
 const targets = document.querySelectorAll('body, #main, #main_wrap , #controls, #leftRight, .ctrl-btn'); 
 // ↑ 対象にしたい要素をカンマ区切りで指定
 
+let lastTouchEnd = 0;
 targets.forEach(target => {
   target.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 1) e.preventDefault();
+    if (e.touches.length > 1) e.preventDefault(); // ピンチズーム防止
   }, { passive: false });
 
   target.addEventListener('gesturestart', (e) => e.preventDefault());
 
   target.addEventListener('touchend', (e) => {
     const now = Date.now();
-    if (now - (target._lastTouchEnd || 0) <= 300) e.preventDefault();
-    target._lastTouchEnd = now;
+    // 2回目のタップ（ダブルタップズーム防止）
+    if (now - lastTouchEnd <= 400) e.preventDefault();
+    lastTouchEnd = now;
   }, { passive: false });
 });
 </script>
