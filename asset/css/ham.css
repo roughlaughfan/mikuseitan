@@ -226,7 +226,8 @@ canvas {
 .btn_d.mada {
     background: #dbdbdb;
     color: #8f8f8f;
-    transition: none
+    transition: none;
+    pointer-events: none;
 }
 
 .btn_d.mada:hover {
