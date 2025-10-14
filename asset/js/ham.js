@@ -22,7 +22,7 @@ const SOUND_PATHS = {
     heart: 'asset/sounds/heart.mp3',
     gameover: 'asset/sounds/gameover.mp3',
     clear: 'asset/sounds/clear.mp3',
-    bgm: 'asset/sounds/bgm.mp3',
+    bgm: 'asset/sounds/bgm2.mp3',
     star: 'asset/sounds/star.mp3',
     btn: 'asset/sounds/btn.mp3',
     se: 'asset/sounds/konami_se.mp3'
@@ -1380,77 +1380,77 @@ function formatScoreKanji(num) {
 
 
 // share button bindings (reuse original share code)
-function bindShareButtons() {
-    // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
-    const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
-    const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
-    const gameUrl = encodeURIComponent('https://roughlaughfan.github.io/mikuseitan/');
-    const hashtags = ["牡蠣サーモンキャッチゲーム", "藤崎団活動報告", "藤崎未来生誕祭2025"];
-    const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
+// function bindShareButtons() {
+//     // prefer the original IDs used in ham.js; fall back to _phaser suffixed IDs
+//     const shareBtn = document.getElementById('shareBtn') || document.getElementById('shareBtn_phaser');
+//     // const shareBtnTop = document.getElementById('shareBtn_top') || document.getElementById('shareBtn_top_phaser');
+//     const gameUrl = encodeURIComponent('https://roughlaughfan.github.io/mikuseitan/');
+//     const hashtags = ["牡蠣サーモンキャッチゲーム", "藤崎団活動報告", "藤崎未来生誕祭2025"];
+//     const formattedHashtags = hashtags.map(t => `#${t}`).join(' ');
 
-    const shareHandler = (e) => { // クリック時に実行される関数を定義
-        const difficultyPrefix = difficultySettings[currentDifficulty]?.sharePrefix || '';
-        const formattedScore = formatScoreKanji(score);
-        const scorePrefix = score >= clearscore ? '【100億点達成！】' : '';
-        const prefix = scorePrefix + difficultyPrefix;
+//     const shareHandler = (e) => { // クリック時に実行される関数を定義
+//         const difficultyPrefix = difficultySettings[currentDifficulty]?.sharePrefix || '';
+//         const formattedScore = formatScoreKanji(score);
+//         const scorePrefix = score >= clearscore ? '【100億点達成！】' : '';
+//         const prefix = scorePrefix + difficultyPrefix;
 
-        const shareText = encodeURIComponent(
-            `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
-        );
+//         const shareText = encodeURIComponent(
+//             `${prefix}牡蠣サーモンキャッチゲームでスコア${formattedScore}点を達成しました！\n${formattedHashtags}`
+//         );
 
-        const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
-        const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
+//         const shareUrlApp = `twitter://post?text=${shareText}&url=${gameUrl}`;
+//         const shareUrlWeb = `https://twitter.com/intent/tweet?text=${shareText}&url=${gameUrl}`;
 
-        // 1. モバイル判定
-        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+//         // 1. モバイル判定
+//         const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
-        // 2. リンク要素の場合の処理 (元のコードから維持)
-        try {
-            // アンカータグのhrefはWeb版を設定（長押しフォールバック用）
-            if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb;
-        } catch (err) { }
+//         // 2. リンク要素の場合の処理 (元のコードから維持)
+//         try {
+//             // アンカータグのhrefはWeb版を設定（長押しフォールバック用）
+//             if (e && e.currentTarget && e.currentTarget.tagName === 'A') e.currentTarget.href = shareUrlWeb;
+//         } catch (err) { }
 
 
-        if (isMobile) {
-            // モバイルの場合:
-            // まずアプリ起動を試みる (現在のタブを上書き)
-            window.location.href = shareUrlApp;
+//         if (isMobile) {
+//             // モバイルの場合:
+//             // まずアプリ起動を試みる (現在のタブを上書き)
+//             window.location.href = shareUrlApp;
 
-            // アプリが開かなかった場合（失敗または未インストール）に、
-            // 現在のタブをWeb版のURLに上書きするフォールバック
-            // window.open()ではないため、ポップアップブロックは発生しない
-            const fallbackTimer = setTimeout(() => {
-                window.location.href = shareUrlWeb;
-            }, 500); // 500ミリ秒に延長して、アプリ起動の猶予を与える
+//             // アプリが開かなかった場合（失敗または未インストール）に、
+//             // 現在のタブをWeb版のURLに上書きするフォールバック
+//             // window.open()ではないため、ポップアップブロックは発生しない
+//             const fallbackTimer = setTimeout(() => {
+//                 window.location.href = shareUrlWeb;
+//             }, 500); // 500ミリ秒に延長して、アプリ起動の猶予を与える
 
-            // **重要:** アプリ起動が成功した場合（ブラウザがバックグラウンドに回る）、
-            // このタイマーが残ったままゲームに戻ると、Web版に勝手に遷移してしまうため、
-            // ページが非表示になったとき（アプリに遷移した可能性が高い）にタイマーをクリアするロジックが必要です。
+//             // **重要:** アプリ起動が成功した場合（ブラウザがバックグラウンドに回る）、
+//             // このタイマーが残ったままゲームに戻ると、Web版に勝手に遷移してしまうため、
+//             // ページが非表示になったとき（アプリに遷移した可能性が高い）にタイマーをクリアするロジックが必要です。
 
-            // ページ可視性APIを使用して、ブラウザが最小化されたり別のアプリに切り替わったりしたときにタイマーをクリア
-            const handleVisibilityChange = () => {
-                if (document.hidden) {
-                    clearTimeout(fallbackTimer);
-                    document.removeEventListener('visibilitychange', handleVisibilityChange);
-                }
-            };
-            document.addEventListener('visibilitychange', handleVisibilityChange);
+//             // ページ可視性APIを使用して、ブラウザが最小化されたり別のアプリに切り替わったりしたときにタイマーをクリア
+//             const handleVisibilityChange = () => {
+//                 if (document.hidden) {
+//                     clearTimeout(fallbackTimer);
+//                     document.removeEventListener('visibilitychange', handleVisibilityChange);
+//                 }
+//             };
+//             document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        } else {
-            // PCの場合、直接Web版を新しいタブで開く (window.openを使用)
-            window.open(shareUrlWeb, '_blank');
-        }
-    };
-    if (shareBtn) {
-        // use addEventListener so we don't accidentally overwrite other handlers
-        shareBtn.addEventListener('click', shareHandler);
-        if (shareBtn.tagName === 'A') { shareBtn.href = '#'; shareBtn.target = '_blank'; shareBtn.rel = 'noopener noreferrer'; }
-    }
-    if (shareBtnTop) {
-        shareBtnTop.addEventListener('click', shareHandler);
-        if (shareBtnTop.tagName === 'A') { shareBtnTop.href = '#'; shareBtnTop.target = '_blank'; shareBtnTop.rel = 'noopener noreferrer'; }
-    }
-}
+//         } else {
+//             // PCの場合、直接Web版を新しいタブで開く (window.openを使用)
+//             window.open(shareUrlWeb, '_blank');
+//         }
+//     };
+//     if (shareBtn) {
+//         // use addEventListener so we don't accidentally overwrite other handlers
+//         shareBtn.addEventListener('click', shareHandler);
+//         if (shareBtn.tagName === 'A') { shareBtn.href = '#'; shareBtn.target = '_blank'; shareBtn.rel = 'noopener noreferrer'; }
+//     }
+//     if (shareBtnTop) {
+//         shareBtnTop.addEventListener('click', shareHandler);
+//         if (shareBtnTop.tagName === 'A') { shareBtnTop.href = '#'; shareBtnTop.target = '_blank'; shareBtnTop.rel = 'noopener noreferrer'; }
+//     }
+// }
 
 
 

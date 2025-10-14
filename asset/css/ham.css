@@ -109,7 +109,7 @@ canvas {
     /* ensure overlays are always in front of transformed background */
     z-index: 10010;
     transform: translateZ(1px);
-    padding: 10% 15%;
+    padding: 8% 15% 17%;
     box-sizing: border-box;
     color: rgb(52, 52, 52);
     background-size: 100% 100%;
@@ -193,7 +193,7 @@ canvas {
 
 #finalScore,
 #finalClearScore {
-    margin: 0 auto;
+    margin: 0 auto 1em;
 }
 
 .btn, .btn_d {
@@ -205,6 +205,7 @@ canvas {
     align-items: center;
     justify-content: center;
     height: 3em;
+    min-height: 2.5em;
     font-size: 20px;
     border-radius: 5px;
     margin-top: .5em;
@@ -349,6 +350,9 @@ p.img + p.img {
 p.img img {
     width: 100%;
 }
+#logo + p.img img {
+    width: 80%;
+}
 
 img {
     image-rendering: -webkit-optimize-contrast;
@@ -372,6 +376,18 @@ body, #main, #main_wrap, #controls , .ctrl-btn {
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+p.info {
+    font-size: 10px;
+    position: absolute;
+    width: 90%;
+    bottom: 3%;
+    left: 5%;
+    margin: 0;
+    background: #ffffff7d;
+    padding: 1%;
+    box-sizing: border-box;
 }
 
 @media (max-height: 639px) {
@@ -494,6 +510,9 @@ body, #main, #main_wrap, #controls , .ctrl-btn {
     .x_share {
         font-size: 3.5vw;
     }
+    p.info {
+        font-size: 2vw;
+    }
 
     .btn ,.btn_d {
         min-height: 3em;
@@ -552,6 +571,9 @@ body, #main, #main_wrap, #controls , .ctrl-btn {
     #finalClearScore,
     .x_share {
         font-size: 3vh;
+    }
+    p.info {
+        font-size: 1.5vh;
     }
 
     .clear_img {
