@@ -193,7 +193,7 @@ canvas {
 
 #finalScore,
 #finalClearScore {
-    margin: 0 auto;
+    margin: 0 auto 1em;
 }
 
 .btn, .btn_d {
@@ -379,7 +379,7 @@ body, #main, #main_wrap, #controls , .ctrl-btn {
 }
 
 p.info {
-    font-size: 10px !important;
+    font-size: 10px;
     position: absolute;
     width: 90%;
     bottom: 3%;
@@ -510,6 +510,9 @@ p.info {
     .x_share {
         font-size: 3.5vw;
     }
+    p.info {
+        font-size: 2vw;
+    }
 
     .btn ,.btn_d {
         min-height: 3em;
@@ -568,6 +571,9 @@ p.info {
     #finalClearScore,
     .x_share {
         font-size: 3vh;
+    }
+    p.info {
+        font-size: 1.5vh;
     }
 
     .clear_img {
