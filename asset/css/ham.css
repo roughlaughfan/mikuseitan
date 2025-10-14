@@ -385,6 +385,9 @@ p.info {
     bottom: 3%;
     left: 5%;
     margin: 0;
+    background: #ffffff7d;
+    padding: 1%;
+    box-sizing: border-box;
 }
 
 @media (max-height: 639px) {
