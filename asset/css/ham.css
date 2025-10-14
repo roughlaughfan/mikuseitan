@@ -109,7 +109,7 @@ canvas {
     /* ensure overlays are always in front of transformed background */
     z-index: 10010;
     transform: translateZ(1px);
-    padding: 10% 15% 15%;
+    padding: 8% 15% 17%;
     box-sizing: border-box;
     color: rgb(52, 52, 52);
     background-size: 100% 100%;
