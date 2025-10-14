@@ -380,6 +380,11 @@ body, #main, #main_wrap, #controls , .ctrl-btn {
 
 p.info {
     font-size: 10px !important;
+    position: absolute;
+    width: 90%;
+    bottom: 3%;
+    left: 5%;
+    margin: 0;
 }
 
 @media (max-height: 639px) {
