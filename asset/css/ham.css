@@ -359,16 +359,20 @@ img {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
 }
+#diff_level {
+    margin: 0 auto .5em;
+}
 
 .clear_img {
     position: absolute;
     right: 10%;
     top: 5%;
     transform: rotate(20deg);
+    margin: 0;
 }
 
 .clear_img img {
-    max-width: 200px;
+    max-width: 175px;
 }
 
 body, #main, #main_wrap, #controls , .ctrl-btn {
@@ -422,12 +426,19 @@ p.info {
 
     h1+p,
     h2+p,
-    .btn,
-    .btn_d,
+    #diff_level,
     #finalScore,
     #finalClearScore,
     .x_share {
-        font-size: 3vh;
+        font-size: 2.5vh;
+    }
+
+    .btn,
+    .btn_d {
+        font-size: 3.125vh;
+    }
+    .clear_img img {
+        max-width: 27.34vh;
     }
 
     .modal {
@@ -439,7 +450,7 @@ p.info {
     }
 
     #gameOverScreen h1+.img img {
-        max-width: 40vh;
+        max-width: 52.5vh;
     }
 
     .modal {
@@ -454,6 +465,10 @@ p.info {
     #controls {
         bottom: 3vh;
     }
+    p.info {
+        font-size: 1.5vh;
+    }
+
 
 }
 
@@ -483,7 +498,7 @@ p.info {
     }
 
     #gameOverScreen h1+.img img {
-        max-width: 60vw;
+        max-width: 70vw;
     }
 
     h2 {
@@ -502,13 +517,16 @@ p.info {
 
     h1+p,
     h2+p,
-    .btn,
-    .btn_d,
     #finalScore,
+    #diff_level,
     #score,
     #finalClearScore,
     .x_share {
-        font-size: 3.5vw;
+        font-size: 3.333vw;
+    }
+    .btn,
+    .btn_d {
+        font-size: 4.1666vw;
     }
     p.info {
         font-size: 2vw;
@@ -548,40 +566,44 @@ p.info {
 
     .clear_img {
         right: 10vw;
-        top: 5vw;
+        top: 6.666vw;
     }
 
     .clear_img img {
-        max-width: 30vw;
+        max-width: 36.458vw;
     }
 
 }
 
-@media (max-height: 639px) and (orientation: landscape) {
-    h2 {
+@media (max-height: 639px) and (max-width: 479px) and (orientation: landscape) {
+    h1 {
         font-size: 3.2vh;
     }
 
     h1+p,
     h2+p,
-    .btn,
-    .btn_d,
     #score,
     #finalScore,
+    #diff_level,
     #finalClearScore,
     .x_share {
-        font-size: 3vh;
+        font-size: 2.5vh;
+    }
+    .btn,
+    .btn_d {
+        font-size: 3.125vh;
     }
     p.info {
         font-size: 1.5vh;
     }
 
     .clear_img {
-        right: 10vh;
-        top: 3vh;
+        right: 7.5vh;
+        top: 5vh;
     }
 
     .clear_img img {
-        max-width: 25vh;
+        max-width: 27.343vh;
     }
 }
+

@@ -11,8 +11,8 @@ const IMG_PATHS = {
     heartEmpty: 'asset/images/heart_empty.png',
     star: 'asset/images/star.png',
     bg_h01: 'asset/images/hint_bg.png',
-    bg_h02: 'asset/images/hint_bg02.png',
-    bg_h03: 'asset/images/hint_bg03.png'
+    // bg_h02: 'asset/images/hint_bg02.png',
+    // bg_h03: 'asset/images/hint_bg03.png'
 };
 
 const SOUND_PATHS = {
@@ -1123,6 +1123,7 @@ function endGame(status) {
     document.getElementById('endTitle').textContent = status;
 
     
+    document.getElementById('diff_level').textContent = 'レベル: ' + difficultySettings[currentDifficulty]?.displayName || '不明';
     document.getElementById('finalScore').textContent = 'スコア: ' + formatScoreKanji(score) + '点';
 
     
