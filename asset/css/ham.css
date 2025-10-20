@@ -361,6 +361,20 @@ img {
 }
 #diff_level {
     margin: 0 auto .5em;
+    background: url("../images/obi.png") no-repeat center center;
+    background-size: 100% 100%;
+    width: 360px;
+    height: 45px;
+    position: absolute;
+    left: 60px;
+    top: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #67330a;
+    font-weight: bold;
+    font-size: 20px;
+    padding-bottom: 5px;
 }
 
 .clear_img {
@@ -426,11 +440,18 @@ p.info {
 
     h1+p,
     h2+p,
-    #diff_level,
     #finalScore,
     #finalClearScore,
     .x_share {
         font-size: 2.5vh;
+    }
+    #diff_level{
+        font-size: 2.5vh;
+        width: 56.25vh;
+        height: 7.03125vh;
+        left: 9.375vh;
+        top: 3.90625vh;
+        padding-bottom: 0.78125vh;
     }
 
     .btn,
@@ -518,11 +539,18 @@ p.info {
     h1+p,
     h2+p,
     #finalScore,
-    #diff_level,
     #score,
     #finalClearScore,
     .x_share {
         font-size: 3.333vw;
+    }
+    #diff_level{
+        font-size: 3.333vw;
+        width: 75vw;
+        height: 9.375vw;
+        left: 12.5vw;
+        top: 5.20833vw;
+        padding-bottom: 1.0416vw;
     }
     .btn,
     .btn_d {
@@ -584,11 +612,19 @@ p.info {
     h2+p,
     #score,
     #finalScore,
-    #diff_level,
     #finalClearScore,
     .x_share {
         font-size: 2.5vh;
     }
+    #diff_level{
+        font-size: 2.5vh;
+        width: 56.25vh;
+        height: 7.03125vh;
+        left: 9.375vh;
+        top: 3.90625vh;
+        padding-bottom: 0.78125vh;
+    }
+
     .btn,
     .btn_d {
         font-size: 3.125vh;

@@ -1123,8 +1123,8 @@ function endGame(status) {
     document.getElementById('endTitle').textContent = status;
 
     
-    document.getElementById('diff_level').textContent = 'レベル: ' + difficultySettings[currentDifficulty]?.displayName || '不明';
-    document.getElementById('finalScore').textContent = 'スコア: ' + formatScoreKanji(score) + '点';
+    document.getElementById('diff_level').textContent = 'レベル： ' + difficultySettings[currentDifficulty]?.displayName || '不明';
+    document.getElementById('finalScore').textContent = 'スコア： ' + formatScoreKanji(score) + '点';
 
     
     if (score >= clearscore) {
