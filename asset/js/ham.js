@@ -11,7 +11,7 @@ const IMG_PATHS = {
     heartEmpty: 'asset/images/heart_empty.png',
     star: 'asset/images/star.png',
     bg_h01: 'asset/images/hint_bg.png',
-    // bg_h02: 'asset/images/hint_bg02.png',
+    bg_h02: 'asset/images/hint_bg02.png',
     // bg_h03: 'asset/images/hint_bg03.png'
 };
 
@@ -22,7 +22,10 @@ const SOUND_PATHS = {
     heart: 'asset/sounds/heart.mp3',
     gameover: 'asset/sounds/gameover.mp3',
     clear: 'asset/sounds/clear.mp3',
-    bgm: 'asset/sounds/bgm2.mp3',
+    bgm: 'asset/sounds/bgm3.mp3',
+    // bgm_easy: 'asset/sounds/bgm1.mp3',
+    bgm_normal: 'asset/sounds/bgm2.mp3',
+    bgm_hard: 'asset/sounds/bgm3.mp3',
     star: 'asset/sounds/star.mp3',
     btn: 'asset/sounds/btn.mp3',
     se: 'asset/sounds/konami_se.mp3'
@@ -75,7 +78,7 @@ const difficultySettings = {
         dropIntervalBase: 1000, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg.png',
         bgImages: ['asset/images/bg01.png', 'asset/images/bg02.png', 'asset/images/bg03.png', 'asset/images/bg04.png', 'asset/images/bg05.png'],
-        bgmKey: 'bgm', defaultBg: 'asset/images/default_bg03.png',
+    bgmKey: 'bgm_hard', defaultBg: 'asset/images/default_bg03.png',
         katakanaWords: [
             ["a1", "a2", "a3", "a4", "a5", "a6"],
             ["d3", "d4", "b2", "b3", "a3", "d4"],
@@ -92,7 +95,7 @@ const difficultySettings = {
         dropIntervalBase: 1000, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg02.png',
         bgImages: ['asset/images/bg06.png', 'asset/images/bg07.png', 'asset/images/bg08.png', 'asset/images/bg09.png', 'asset/images/bg10.png'],
-        bgmKey: 'bgm', defaultBg: 'asset/images/default_bg02.png',
+    bgmKey: 'bgm_normal', defaultBg: 'asset/images/default2_bg01.png',
         katakanaWords: [
             ["a5", "a6", "d1", "d2", "b3"],
             ["b1", "b2", "b3", "a2", "b4", "b5", "b6"],
@@ -109,7 +112,7 @@ const difficultySettings = {
         dropIntervalBase: 1200, dropIntervalReduction: 200,
         bgFirst: 'asset/images/hint_bg03.png',
         bgImages: ['asset/images/bg11.png', 'asset/images/bg12.png', 'asset/images/bg13.png', 'asset/images/bg14.png', 'asset/images/bg15.png'],
-        bgmKey: 'bgm', defaultBg: 'asset/images/default_bg.png',
+    bgmKey: 'bgm_easy', defaultBg: 'asset/images/default1_bg01.png',
         katakanaWords: [
                 ["d3", "d4", "b2", "b3", "f1", "f2", "b2", "f3"],
                 ["c3", "b5", "a4", "f5", "b5", "g1", "g2", "g3"],
@@ -122,11 +125,26 @@ const difficultySettings = {
 };
 
 
-const backgroundList = [
-    'asset/images/default_bg.png',
-    'asset/images/default_bg02.png',
-    'asset/images/default_bg03.png'
+// Per-difficulty background lists (explicit, separate arrays).
+// NOTE: Do NOT mix these with `difficultySettings.bgImages` which is used elsewhere.
+const backgroundList1 = [
+    'asset/images/default1_bg01.png',
+    'asset/images/default1_bg02.png',
+    'asset/images/default1_bg03.png'
 ];
+const backgroundList2 = [
+    'asset/images/default2_bg01.png',
+    'asset/images/default2_bg02.png',
+    'asset/images/default2_bg03.png'
+];
+const backgroundList3 = [
+    'asset/images/default_bg03.png',
+    'asset/images/default_bg.png',
+    'asset/images/default_bg02.png'
+];
+
+// Default to difficulty 3 list
+let backgroundList = backgroundList3.slice();
 
 let bgIntervalId = null;
 let bgTimeoutId = null;
@@ -143,11 +161,13 @@ function initBackgroundLoop(difficulty) {
     const d_setting = difficultySettings[difficulty];
     if (!d_setting) return;
 
-    
-    currentBgIndex = difficulty - 1;
-    if (currentBgIndex < 0 || currentBgIndex >= backgroundList.length) {
-        currentBgIndex = 0;
-    }
+    // switch background list by difficulty
+    if (difficulty === 1) backgroundList = backgroundList1.slice();
+    else if (difficulty === 2) backgroundList = backgroundList2.slice();
+    else backgroundList = backgroundList3.slice();
+
+    // start at first image for the selected list
+    currentBgIndex = 0;
 
     const d_bg1 = document.querySelector('#bgLayer .bg1');
     const d_bg2 = document.querySelector('#bgLayer .bg2');
