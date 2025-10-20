@@ -122,6 +122,12 @@ canvas {
 #gameOverScreen {
     background-image: url("../images/gameover.png");
 }
+#gameOverScreen.clear_set {
+    padding-top: 125px;
+}
+#gameOverScreen.clear_set h1 {
+    margin-bottom: 0;
+}
 
 
 #splash-screen {
@@ -380,7 +386,7 @@ img {
 .clear_img {
     position: absolute;
     right: 10%;
-    top: 5%;
+    top: 93px;
     transform: rotate(20deg);
     margin: 0;
     z-index: 2;
@@ -490,7 +496,12 @@ p.info {
     p.info {
         font-size: 1.5vh;
     }
-
+    #gameOverScreen.clear_set {
+        padding-top: 19.53vh;
+    }
+    .clear_img {
+        top: 14.531vh;
+    }
 
 }
 
@@ -593,9 +604,12 @@ p.info {
         padding: 0 3vw;
     }
 
+    #gameOverScreen.clear_set {
+        padding-top: 26.0416vw;
+    }
     .clear_img {
         right: 10vw;
-        top: 6.666vw;
+        top: 19.375vw;
     }
 
     .clear_img img {

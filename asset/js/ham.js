@@ -1132,6 +1132,7 @@ function endGame(status) {
 
         document.querySelector('#gameOverScreen .clear_img').style.display = 'block';
         document.getElementById('gameOverScreen').style.backgroundImage = "url('asset/images/clear.png')";
+        document.getElementById('gameOverScreen').classList.add("clear_set");
 
         const clearImageElement = document.getElementById('clearImage');
 
@@ -1146,6 +1147,7 @@ function endGame(status) {
         document.querySelector('#gameOverScreen .clear_img').style.display = 'none';
         document.getElementById('gameOverScreen').style.backgroundImage = "url('asset/images/gameover.png')";
         const clearImageElement = document.getElementById('clearImage');
+        document.getElementById('gameOverScreen').classList.remove("clear_set");
 
         
         if (clearImageElement) {
