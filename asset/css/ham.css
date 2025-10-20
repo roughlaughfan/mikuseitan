@@ -383,6 +383,7 @@ img {
     top: 5%;
     transform: rotate(20deg);
     margin: 0;
+    z-index: 2;
 }
 
 .clear_img img {
