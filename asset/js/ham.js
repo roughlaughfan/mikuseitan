@@ -12,7 +12,7 @@ const IMG_PATHS = {
     star: 'asset/images/star.png',
     bg_h01: 'asset/images/hint_bg.png',
     bg_h02: 'asset/images/hint_bg02.png',
-    // bg_h03: 'asset/images/hint_bg03.png'
+    bg_h03: 'asset/images/hint_bg03.png'
 };
 
 const SOUND_PATHS = {
@@ -23,7 +23,7 @@ const SOUND_PATHS = {
     gameover: 'asset/sounds/gameover.mp3',
     clear: 'asset/sounds/clear.mp3',
     bgm: 'asset/sounds/bgm3.mp3',
-    // bgm_easy: 'asset/sounds/bgm1.mp3',
+    bgm_easy: 'asset/sounds/bgm1.mp3',
     bgm_normal: 'asset/sounds/bgm2.mp3',
     bgm_hard: 'asset/sounds/bgm3.mp3',
     star: 'asset/sounds/star.mp3',
